@@ -1,0 +1,265 @@
+{
+  "repository": "https://github.com/joshmas90/linartinc",
+  "commit": "45ee6b05b0148a226f7a97717df6aa25a35d5c29",
+  "transformation": "Bundled website photos converted from WebP to JPEG, max 1600 px, EXIF removed. Brand seal retained as PNG. App icon derives from the existing seal on an opaque background.",
+  "assets": [
+    {
+      "asset": "porch-main",
+      "source": "/images/projects/covered-porch/porch-main.webp",
+      "caption": "Completed covered porch with composite steps, white railing and finished gable",
+      "original_sha256": "bfa5a9ae3296443e1e8206697139cd2635d5aca0fc792564bce507b1c21271a8"
+    },
+    {
+      "asset": "porch-progress-01",
+      "source": "/images/projects/covered-porch/porch-progress-01.webp",
+      "caption": "Covered porch wall and finish work in progress",
+      "original_sha256": "e20562c60b47e88e2a5a5a1b30a5a38067b913d16f1d7f8fab016d75ce46cdb2"
+    },
+    {
+      "asset": "porch-progress-02",
+      "source": "/images/projects/covered-porch/porch-progress-02.webp",
+      "caption": "Covered porch ceiling and open wall construction detail",
+      "original_sha256": "f33ec5401a4f7d71fd980b26c49fb4f7a02c24be079879ef51cc6a189bdff221"
+    },
+    {
+      "asset": "porch-exterior",
+      "source": "/images/projects/covered-porch/porch-exterior.webp",
+      "caption": "Exterior view of the covered porch and deck project",
+      "original_sha256": "0c9134e26c4005a7dfc6ee2867685773aee3e6f116821bda5d675d99ec2db1d8"
+    },
+    {
+      "asset": "kitchen-main",
+      "source": "/images/projects/kitchen/kitchen-main.webp",
+      "caption": "Completed white kitchen with subway tile, farmhouse sink and hardwood floors",
+      "original_sha256": "9127cfc1aac6ab4963e5e582aa0caa964130ddc061bcad290bd5dc1fafc1643a"
+    },
+    {
+      "asset": "kitchen-sink-detail",
+      "source": "/images/projects/kitchen/kitchen-sink-detail.webp",
+      "caption": "White shaker cabinetry and farmhouse sink beneath wide kitchen windows",
+      "original_sha256": "9e2525cc738b87e8a65abc767e1cacf62c5cfd7038e452be704af8cbbd367180"
+    },
+    {
+      "asset": "kitchen-cabinetry",
+      "source": "/images/projects/kitchen/kitchen-cabinetry.webp",
+      "caption": "Full kitchen cabinetry run with dark counters and stone backsplash",
+      "original_sha256": "a0ba0b8b85f972b9b3dede37f3c0843768055de8a5da14eb4f215c9c4f88df29"
+    },
+    {
+      "asset": "kitchen-progress",
+      "source": "/images/projects/kitchen/kitchen-progress.webp",
+      "caption": "Kitchen cabinetry and flooring installation in progress",
+      "original_sha256": "759615864eae5e3e452a052faf98d8911b7b898a2b7c9aa68da4fce939c50a9e"
+    },
+    {
+      "asset": "bathroom-vanity-shower",
+      "source": "/images/projects/bathroom/bathroom-vanity-shower.webp",
+      "caption": "Custom wood vanity beside a glass shower enclosure",
+      "original_sha256": "8e803f29175d759a069fdaf86b1a281c98f73615a43950000df5ca5513f704be"
+    },
+    {
+      "asset": "bath-main",
+      "source": "/images/projects/bathroom/bath-main.webp",
+      "caption": "Finished modern bathroom with freestanding tub and black hexagonal tile",
+      "original_sha256": "99538ab65ee7e4cb011161164fdc5cd324b24c218a943d406c66f8f29f370f32"
+    },
+    {
+      "asset": "bathroom-shower-detail",
+      "source": "/images/projects/bathroom/bathroom-shower-detail.webp",
+      "caption": "Walk-in shower with white tile, patterned floor and matte-black fixtures",
+      "original_sha256": "c11e7bec6c4d4bfd6991f97e4e10c19f711b73037fe8909b25c8f5669dd9cf11"
+    },
+    {
+      "asset": "bath-detail-01",
+      "source": "/images/projects/bathroom/bath-detail-01.webp",
+      "caption": "Modern bathroom vanity, freestanding tub and window detail",
+      "original_sha256": "e873965e449de002e856ee52555f291e808d786c4f4e69e0aae01362c98445bd"
+    },
+    {
+      "asset": "bath-detail-02",
+      "source": "/images/projects/bathroom/bath-detail-02.webp",
+      "caption": "Modern walk-in shower with white tile and black fixtures",
+      "original_sha256": "93c65933e58e704623ea30df77537f2bbe2f6f12c2e1bfe072b686afd2e57d0d"
+    },
+    {
+      "asset": "bath-detail-03",
+      "source": "/images/projects/bathroom/bath-detail-03.webp",
+      "caption": "Completed modern bathroom viewed from the entry",
+      "original_sha256": "8ac8f06c16c9b7e93f6c314bc2055366edccb5c86495646c6e08f46793618f72"
+    },
+    {
+      "asset": "bathroom-overview-b",
+      "source": "/images/projects/bathroom/bathroom-overview-b.webp",
+      "caption": "Completed bathroom viewed from the entry with shower and vanity",
+      "original_sha256": "7595d03b704f741dc194d985b98326972385d2bd6e5321d4a4baef84cea79785"
+    },
+    {
+      "asset": "addition-main",
+      "source": "/images/projects/addition/addition-main.webp",
+      "caption": "Residential addition framing connected to an existing home",
+      "original_sha256": "07b4d7a0b9ac649f33e86666bbc77f824a9d404f6426cc0579ec29ba628a479f"
+    },
+    {
+      "asset": "addition-progress-01",
+      "source": "/images/projects/addition/addition-progress-01.webp",
+      "caption": "Early wall framing stage for a residential addition",
+      "original_sha256": "86d65cb1830c1cbe9ab90228ce887120ff51e41933db1981183bd9d716a3098e"
+    },
+    {
+      "asset": "addition-progress-02",
+      "source": "/images/projects/addition/addition-progress-02.webp",
+      "caption": "Framing crew working on a residential addition",
+      "original_sha256": "86b411f3770335562cbf9cfda0853f48c31f3fe04045e02cbf7bfc67ee23f741"
+    },
+    {
+      "asset": "addition-progress-03",
+      "source": "/images/projects/addition/addition-progress-03.webp",
+      "caption": "Roof framing stage of a residential addition",
+      "original_sha256": "adf08c7620368af3bec67f96f0b2dbd36cb0205dc00224862862cb2a87d1523d"
+    },
+    {
+      "asset": "deck-main",
+      "source": "/images/projects/elevated-deck/deck-main.webp",
+      "caption": "Elevated deck addition attached to a brick home",
+      "original_sha256": "85698e4b845673f49432caf389cbb8eaa3f6dda17d1ae21077a90db00295d214"
+    },
+    {
+      "asset": "deck-progress",
+      "source": "/images/projects/elevated-deck/deck-progress.webp",
+      "caption": "Elevated deck structure and lower covered area during construction",
+      "original_sha256": "d92a6247edac2ce60c021f816b7dbcf7a5bd77265631db2b9262ac7d4e20f1bf"
+    },
+    {
+      "asset": "deck-detail-01",
+      "source": "/images/projects/elevated-deck/deck-detail-01.webp",
+      "caption": "Composite deck surface with cable railing detail",
+      "original_sha256": "c70a775e77c1e0398142872cbcbbf7c2eb77a343b8f1e50ae3b969e363595e95"
+    },
+    {
+      "asset": "deck-detail-02",
+      "source": "/images/projects/elevated-deck/deck-detail-02.webp",
+      "caption": "Finished deck surface and cable railing overlooking the yard",
+      "original_sha256": "c63599d854b8c5cbae457e978fa5e3e28bad393d00bdcd41c614403c766db45d"
+    },
+    {
+      "asset": "custom-deck-main",
+      "source": "/images/projects/custom-decks/custom-deck-main.webp",
+      "caption": "Finished custom composite deck with white posts and black balusters",
+      "original_sha256": "96b9e6f542394257342e1b08addc204a179ae7577c334aa39a73746b617d367e"
+    },
+    {
+      "asset": "custom-deck-exterior",
+      "source": "/images/projects/custom-decks/custom-deck-exterior.webp",
+      "caption": "Custom deck exterior with white rail system and gray composite decking",
+      "original_sha256": "64b6ade6548035b131e295e95dc0c081b231a4a17510a24abfef951db5029e4a"
+    },
+    {
+      "asset": "custom-deck-stairs",
+      "source": "/images/projects/custom-decks/custom-deck-stairs.webp",
+      "caption": "Composite deck stairs with white posts and black metal balusters",
+      "original_sha256": "f9c70b4f2c39fb21c7cb21a897ec82aa46441ba3dec3148db4293531e1184e85"
+    },
+    {
+      "asset": "custom-deck-waterfront",
+      "source": "/images/projects/custom-decks/custom-deck-waterfront.webp",
+      "caption": "Large wood deck overlooking a waterfront property",
+      "original_sha256": "c6ca6d8039c985e019bf16d6315d4d96e050c96347dac4c0fdeb7d7f41e4e541"
+    },
+    {
+      "asset": "hardscape-pool-main",
+      "source": "/images/projects/hardscape/hardscape-pool-main.webp",
+      "caption": "Custom paver pool surround with integrated deck access and finished waterline",
+      "original_sha256": "4800a68d45c84eb9d6f287c46135c62803f5e9e9df26b7dceaab3bcd7925f874"
+    },
+    {
+      "asset": "hardscape-pool-wide",
+      "source": "/images/projects/hardscape/hardscape-pool-wide.webp",
+      "caption": "Wide view of a custom paver pool deck with curved spa and contrasting border",
+      "original_sha256": "d93d8256424ff57df92172b53e1c13815f24e732023e955052719f6cacf02305"
+    },
+    {
+      "asset": "hardscape-pool-sunset",
+      "source": "/images/projects/hardscape/hardscape-pool-sunset.webp",
+      "caption": "Panoramic view of a custom paver pool surround at sunset",
+      "original_sha256": "a1119f06f01747f70bd28321150470ac567b54de1da1aaba4d0039d2517e0a4c"
+    },
+    {
+      "asset": "hardscape-brick-walk",
+      "source": "/images/projects/hardscape/hardscape-brick-walk.webp",
+      "caption": "Curved reclaimed-brick walkway with contrasting border through a landscaped side yard",
+      "original_sha256": "1bd224074f10ceb52217d78ff361b97ca111d01cb7e3d2fc6f732cf7507ddbed"
+    },
+    {
+      "asset": "hardscape-brick-steps",
+      "source": "/images/projects/hardscape/hardscape-brick-steps.webp",
+      "caption": "Rebuilt brick entry steps and landing with clean mortar joints",
+      "original_sha256": "38703d9083e103593215152d9472c651a12f269d9f5c3497a552cd552c0e66b2"
+    },
+    {
+      "asset": "hardscape-concrete-flatwork",
+      "source": "/images/projects/hardscape/hardscape-concrete-flatwork.webp",
+      "caption": "New concrete flatwork and slab installation beside a residential exterior",
+      "original_sha256": "aa8f900ef1e48f881b038c120c753e1f91c03fdb38ed3a71ad42a90f39ebc605"
+    },
+    {
+      "asset": "linart-residence-hero",
+      "source": "/images/home/linart-residence-hero.webp",
+      "caption": "Large custom residence under construction by Linart Construction in New Jersey",
+      "original_sha256": "1b05f5961fe3c7fa8c2248c08caa054212190126b823753783e96d73c19c3cdf"
+    },
+    {
+      "asset": "addition-framing",
+      "source": "/images/home/addition-framing.webp",
+      "caption": "Linart Construction crew framing a large residential addition",
+      "original_sha256": "9977d9fe5a1762a6cb2cf3034a3b8afa31ab34981c68693fcae3576147412f02"
+    },
+    {
+      "asset": "open-kitchen",
+      "source": "/images/home/open-kitchen.webp",
+      "caption": "Open finished kitchen and adjoining living space by Linart Construction",
+      "original_sha256": "2abd7aa3889b012305bf06a79e2a0340aac9caa4895836307e69f99323dd277d"
+    },
+    {
+      "asset": "kitchen-remodeling",
+      "source": "/images/services/kitchen-remodeling.webp",
+      "caption": "Completed white kitchen with custom cabinetry and a butcher-block island",
+      "original_sha256": "f5aea7022baa7cdacb3d7b7b58f2b2384150e2500dfe04461b7bfcfa5f736eda"
+    },
+    {
+      "asset": "bathroom-shower-flowers",
+      "source": "/images/projects/bathroom/bathroom-shower-flowers.webp",
+      "caption": "Finished bathroom with glass shower, bright tile and refined fixtures",
+      "original_sha256": "6cb051f3c5282b740cfc29e13a095a327bca07a1e0f7fe8b8ee773eccb8baa36"
+    },
+    {
+      "asset": "hardwood-restoration-progress",
+      "source": "/images/editorial/hardwood-restoration-progress.webp",
+      "caption": "Floor restoration in progress during a Linart interior renovation",
+      "original_sha256": "b724ac607f5d4f54179a701e5af24d697e2392095373d00a47515a772b1b00b1"
+    },
+    {
+      "asset": "structural-deck-framing",
+      "source": "/images/services/structural-deck-framing.webp",
+      "caption": "Deck framing and foundation work at a New Jersey home",
+      "original_sha256": "ae50a85500f60f59e13ebe1ea0d6524ae39ac69cad32508639cbb362e930397e"
+    },
+    {
+      "asset": "home-hero",
+      "source": "/images/home/linart-premium-hero-clean.webp",
+      "caption": "Website architectural bathroom hero; editorial imagery, not independently verified as a completed project.",
+      "original_sha256": "d91946dac768d746c852aded1c05beaf73f0fbce31f58523ddb06fc28c91e196"
+    },
+    {
+      "asset": "about-crew",
+      "source": "/images/about/linart-crew-framing.webp",
+      "caption": "LINART crew framing a residential addition",
+      "original_sha256": "da0c9f7a23cb3bf86c179bbd7a0e5f0116838b4efd74ad4f294afd954fa89382"
+    },
+    {
+      "asset": "linart-seal",
+      "source": "/branding/linart-seal.png",
+      "caption": "LINART brand seal",
+      "original_sha256": "2eff33a330e802d71bb8de48286533a6ac0f5ee818f7dc8b5bbe6e4ad77e6da3"
+    }
+  ]
+}

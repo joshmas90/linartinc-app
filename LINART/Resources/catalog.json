@@ -1,0 +1,467 @@
+{
+  "projects": [
+    {
+      "id": "covered-porch",
+      "title": "Covered Porch Build",
+      "category": "Porch + Outdoor Living",
+      "location": "New Jersey",
+      "scope": "Composite decking · Wood ceiling · Exterior integration · Finish carpentry",
+      "stage": "Process + detail views",
+      "service": "Deck / Patio Construction",
+      "photos": [
+        {
+          "asset": "porch-main",
+          "caption": "Completed covered porch with composite steps, white railing and finished gable"
+        },
+        {
+          "asset": "porch-progress-01",
+          "caption": "Covered porch wall and finish work in progress"
+        },
+        {
+          "asset": "porch-progress-02",
+          "caption": "Covered porch ceiling and open wall construction detail"
+        },
+        {
+          "asset": "porch-exterior",
+          "caption": "Exterior view of the covered porch and deck project"
+        }
+      ]
+    },
+    {
+      "id": "kitchen",
+      "title": "Open Concept Kitchen Renovation",
+      "category": "Kitchen + Interior",
+      "location": "New Jersey",
+      "scope": "Cabinetry · Flooring · Lighting · Backsplash · Open-concept living space",
+      "stage": "Finished + progress views",
+      "service": "Kitchen Remodeling",
+      "photos": [
+        {
+          "asset": "kitchen-main",
+          "caption": "Completed white kitchen with subway tile, farmhouse sink and hardwood floors"
+        },
+        {
+          "asset": "kitchen-sink-detail",
+          "caption": "White shaker cabinetry and farmhouse sink beneath wide kitchen windows"
+        },
+        {
+          "asset": "kitchen-cabinetry",
+          "caption": "Full kitchen cabinetry run with dark counters and stone backsplash"
+        },
+        {
+          "asset": "kitchen-progress",
+          "caption": "Kitchen cabinetry and flooring installation in progress"
+        }
+      ]
+    },
+    {
+      "id": "bathroom",
+      "title": "Modern Bathroom Renovation",
+      "category": "Bathroom + Tile",
+      "location": "New Jersey",
+      "scope": "Freestanding tub · Walk-in shower · Tile · Fixtures · Finish work",
+      "stage": "Completed views",
+      "service": "Bathroom Remodeling",
+      "photos": [
+        {
+          "asset": "bathroom-vanity-shower",
+          "caption": "Custom wood vanity beside a glass shower enclosure"
+        },
+        {
+          "asset": "bath-main",
+          "caption": "Finished modern bathroom with freestanding tub and black hexagonal tile"
+        },
+        {
+          "asset": "bathroom-shower-detail",
+          "caption": "Walk-in shower with white tile, patterned floor and matte-black fixtures"
+        },
+        {
+          "asset": "bath-detail-01",
+          "caption": "Modern bathroom vanity, freestanding tub and window detail"
+        },
+        {
+          "asset": "bath-detail-02",
+          "caption": "Modern walk-in shower with white tile and black fixtures"
+        },
+        {
+          "asset": "bath-detail-03",
+          "caption": "Completed modern bathroom viewed from the entry"
+        },
+        {
+          "asset": "bathroom-overview-b",
+          "caption": "Completed bathroom viewed from the entry with shower and vanity"
+        }
+      ]
+    },
+    {
+      "id": "addition",
+      "title": "New Home Construction + Additions",
+      "category": "Ground-Up Building + Expansion",
+      "location": "New Jersey",
+      "scope": "Site preparation · Structural framing · Roof systems · Exterior integration",
+      "stage": "Framing + structural sequence",
+      "service": "Home Addition",
+      "photos": [
+        {
+          "asset": "addition-main",
+          "caption": "Residential addition framing connected to an existing home"
+        },
+        {
+          "asset": "addition-progress-01",
+          "caption": "Early wall framing stage for a residential addition"
+        },
+        {
+          "asset": "addition-progress-02",
+          "caption": "Framing crew working on a residential addition"
+        },
+        {
+          "asset": "addition-progress-03",
+          "caption": "Roof framing stage of a residential addition"
+        }
+      ]
+    },
+    {
+      "id": "elevated-deck",
+      "title": "Elevated Outdoor Living",
+      "category": "Deck + Exterior",
+      "location": "New Jersey",
+      "scope": "Elevated structure · Composite decking · Cable rail · Covered lower level",
+      "stage": "Build + detail views",
+      "service": "Deck / Patio Construction",
+      "photos": [
+        {
+          "asset": "deck-main",
+          "caption": "Elevated deck addition attached to a brick home"
+        },
+        {
+          "asset": "deck-progress",
+          "caption": "Elevated deck structure and lower covered area during construction"
+        },
+        {
+          "asset": "deck-detail-01",
+          "caption": "Composite deck surface with cable railing detail"
+        },
+        {
+          "asset": "deck-detail-02",
+          "caption": "Finished deck surface and cable railing overlooking the yard"
+        }
+      ]
+    },
+    {
+      "id": "custom-decks",
+      "title": "Custom Decks & Outdoor Living",
+      "category": "Custom Decks + Outdoor Living",
+      "location": "New Jersey",
+      "scope": "Composite and wood decking · Custom rail systems · Stairs · Structural framing · Exterior integration",
+      "stage": "Finished builds + detail views",
+      "service": "Deck / Patio Construction",
+      "photos": [
+        {
+          "asset": "custom-deck-main",
+          "caption": "Finished custom composite deck with white posts and black balusters"
+        },
+        {
+          "asset": "custom-deck-exterior",
+          "caption": "Custom deck exterior with white rail system and gray composite decking"
+        },
+        {
+          "asset": "custom-deck-stairs",
+          "caption": "Composite deck stairs with white posts and black metal balusters"
+        },
+        {
+          "asset": "custom-deck-waterfront",
+          "caption": "Large wood deck overlooking a waterfront property"
+        }
+      ]
+    },
+    {
+      "id": "hardscape",
+      "title": "Custom Hardscapes & Masonry",
+      "category": "Pavers + Masonry + Hardscape",
+      "location": "New Jersey",
+      "scope": "Pool decks · Interlocking pavers · Brick walks · Masonry steps · Concrete flatwork",
+      "stage": "Finished work + installation views",
+      "service": "Other Residential Work",
+      "photos": [
+        {
+          "asset": "hardscape-pool-main",
+          "caption": "Custom paver pool surround with integrated deck access and finished waterline"
+        },
+        {
+          "asset": "hardscape-pool-wide",
+          "caption": "Wide view of a custom paver pool deck with curved spa and contrasting border"
+        },
+        {
+          "asset": "hardscape-pool-sunset",
+          "caption": "Panoramic view of a custom paver pool surround at sunset"
+        },
+        {
+          "asset": "hardscape-brick-walk",
+          "caption": "Curved reclaimed-brick walkway with contrasting border through a landscaped side yard"
+        },
+        {
+          "asset": "hardscape-brick-steps",
+          "caption": "Rebuilt brick entry steps and landing with clean mortar joints"
+        },
+        {
+          "asset": "hardscape-concrete-flatwork",
+          "caption": "New concrete flatwork and slab installation beside a residential exterior"
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": "custom-homes",
+      "title": "New Custom Home Construction",
+      "inquiryType": "New Custom Home Construction",
+      "summary": "Ground-up residential construction coordinated from structure and exterior envelope through interior systems and finish work.",
+      "introduction": "A custom home asks every major decision to work together: structure, exterior envelope, interior systems, circulation, materials and finish quality. Linart coordinates that work as one residential construction process so the home is planned and built with continuity from the early scope through the final details.",
+      "planning": "Ground-up residential work benefits from decisions being made in the right order. Linart focuses on sequencing, communication and accountability so structural work, exterior protection, interior systems and finish work do not become disconnected scopes.",
+      "photo": {
+        "asset": "linart-residence-hero",
+        "caption": "Large custom residence under construction by Linart Construction in New Jersey"
+      },
+      "details": [
+        "Preconstruction coordination",
+        "Structural framing",
+        "Exterior envelope",
+        "Interior finish"
+      ],
+      "priorities": [
+        [
+          "Scope before activity",
+          "Define the home, priorities and major decisions before construction sequencing begins."
+        ],
+        [
+          "Structure and envelope",
+          "Coordinate framing, roof conditions, exterior assemblies and openings as one system."
+        ],
+        [
+          "Interior coordination",
+          "Carry layout, systems, cabinetry, surfaces and finish decisions through the same construction plan."
+        ],
+        [
+          "Finish discipline",
+          "Close the project with the same attention to transitions, alignment and detail that shaped the early work."
+        ]
+      ]
+    },
+    {
+      "id": "home-additions",
+      "title": "Home Additions",
+      "inquiryType": "Home Addition",
+      "summary": "Expansions planned to feel connected to the original house—not appended to it.",
+      "introduction": "A successful addition should solve a space problem without feeling detached from the home that was already there. Linart plans residential additions around structure, roof and exterior integration, circulation, interior transitions and finish continuity.",
+      "planning": "Addition work usually touches both existing conditions and new construction at the same time. That makes sequencing especially important. Linart approaches the project as one connected scope so demolition, temporary protection, framing, exterior closure and interior finish stay coordinated.",
+      "photo": {
+        "asset": "addition-framing",
+        "caption": "Linart Construction crew framing a large residential addition"
+      },
+      "details": [
+        "Structural framing",
+        "Exterior envelope",
+        "Interior integration",
+        "Finish coordination"
+      ],
+      "priorities": [
+        [
+          "Connection to the existing home",
+          "Plan openings, circulation and transitions so the new space works with the original layout."
+        ],
+        [
+          "Structural integration",
+          "Coordinate framing and load paths around the conditions already present in the house."
+        ],
+        [
+          "Exterior continuity",
+          "Consider rooflines, siding or masonry, windows and weather protection as part of the addition—not as afterthoughts."
+        ],
+        [
+          "Interior finish",
+          "Carry flooring, trim, cabinetry and other visible details through the old-to-new transition."
+        ]
+      ]
+    },
+    {
+      "id": "whole-home-renovations",
+      "title": "Whole-Home Renovations",
+      "inquiryType": "Whole-Home Renovation",
+      "summary": "Large-scope renovation work coordinated across rooms, systems and trades.",
+      "introduction": "Whole-home renovation is less about changing one room and more about managing how many decisions affect one another. Linart coordinates substantial residential renovation work across layouts, systems, finishes and trade sequencing so the project reads as one home when it is complete.",
+      "planning": "Substantial renovation work can become fragmented when each room or trade is treated independently. Linart keeps the project connected through planning, site communication and finish standards that carry from the first phase through closeout.",
+      "photo": {
+        "asset": "open-kitchen",
+        "caption": "Open finished kitchen and adjoining living space by Linart Construction"
+      },
+      "details": [
+        "Phased planning",
+        "Interior reconfiguration",
+        "Finish consistency",
+        "Trade coordination"
+      ],
+      "priorities": [
+        [
+          "Project-wide planning",
+          "Set priorities and sequencing across the full renovation before individual rooms begin competing for decisions."
+        ],
+        [
+          "Existing conditions",
+          "Work from the realities of the current structure, layout and systems rather than treating the house like a blank slate."
+        ],
+        [
+          "Trade coordination",
+          "Sequence structural, mechanical and finish scopes so one phase supports the next."
+        ],
+        [
+          "Visual continuity",
+          "Use material, trim and finish decisions consistently enough that renovated areas belong to the same home."
+        ]
+      ]
+    },
+    {
+      "id": "kitchen-remodeling",
+      "title": "Kitchen Remodeling",
+      "inquiryType": "Kitchen Remodeling",
+      "summary": "Kitchens designed around circulation, storage, durable materials and clean installation.",
+      "introduction": "Kitchen remodeling works best when layout and daily use lead the design decisions. Linart coordinates cabinetry, surfaces, fixtures, lighting and finish work around circulation, storage and the way the kitchen connects to the rest of the home.",
+      "planning": "A kitchen contains many tightly connected decisions. Linart focuses on making those decisions in sequence so cabinetry, electrical work, plumbing fixtures, surfaces and finish details support one another rather than creating late-stage conflicts.",
+      "photo": {
+        "asset": "kitchen-remodeling",
+        "caption": "Completed white kitchen with custom cabinetry and a butcher-block island"
+      },
+      "details": [
+        "Layout",
+        "Cabinetry",
+        "Lighting",
+        "Fixtures + finish work"
+      ],
+      "priorities": [
+        [
+          "Circulation",
+          "Protect useful clearances and movement between cooking, storage, cleanup and adjacent rooms."
+        ],
+        [
+          "Cabinetry and storage",
+          "Coordinate cabinet layout with appliances, fixtures, work surfaces and everyday storage needs."
+        ],
+        [
+          "Lighting and fixtures",
+          "Plan functional lighting and fixture locations before finish work closes the walls and ceilings."
+        ],
+        [
+          "Finish integration",
+          "Bring flooring, trim, tile, counters and cabinetry together with clean transitions."
+        ]
+      ]
+    },
+    {
+      "id": "bathroom-remodeling",
+      "title": "Bathroom Remodeling",
+      "inquiryType": "Bathroom Remodeling",
+      "summary": "Bathrooms built around waterproofing, precise tilework and durable daily use.",
+      "introduction": "Bathrooms are small spaces with little room for imprecise sequencing. Linart coordinates waterproofing, tile, fixtures, ventilation and finish details so the visible result is supported by careful work behind the surfaces.",
+      "planning": "The best bathroom work is not only visible in the tile and fixtures. It is also visible in alignment, transitions and the absence of rushed decisions. Linart approaches the room as a complete assembly from preparation through finish.",
+      "photo": {
+        "asset": "bathroom-shower-flowers",
+        "caption": "Finished bathroom with glass shower, bright tile and refined fixtures"
+      },
+      "details": [
+        "Waterproofing",
+        "Tile",
+        "Fixtures",
+        "Ventilation + finish"
+      ],
+      "priorities": [
+        [
+          "Water management",
+          "Treat waterproofing and wet-area preparation as core construction work, not a cosmetic step."
+        ],
+        [
+          "Fixture coordination",
+          "Resolve fixture locations and clearances before tile and finish decisions become fixed."
+        ],
+        [
+          "Tile layout",
+          "Plan alignment, transitions and terminations so the finished room reads cleanly."
+        ],
+        [
+          "Ventilation and finish",
+          "Coordinate ventilation, lighting, trim and final detailing for durable daily use."
+        ]
+      ]
+    },
+    {
+      "id": "basement-finishing",
+      "title": "Basement Finishing",
+      "inquiryType": "Basement Finishing",
+      "summary": "Comfortable lower-level living space planned around the realities of the existing home.",
+      "introduction": "A finished basement should feel like useful living space, not simply a covered foundation level. Linart plans lower-level work around layout, moisture conditions, mechanical systems, egress, storage and the way the finished area will actually be used.",
+      "planning": "Basement projects are highly dependent on existing conditions. Linart focuses on resolving those constraints before finish work advances, helping the completed space feel intentional and connected to the rest of the house.",
+      "photo": {
+        "asset": "hardwood-restoration-progress",
+        "caption": "Floor restoration in progress during a Linart interior renovation"
+      },
+      "details": [
+        "Layout",
+        "Moisture considerations",
+        "Mechanical integration",
+        "Finish work"
+      ],
+      "priorities": [
+        [
+          "Existing conditions",
+          "Start with the lower level as it exists, including structure, utilities and moisture considerations."
+        ],
+        [
+          "Layout and circulation",
+          "Use the footprint efficiently while preserving practical access to mechanical and storage areas."
+        ],
+        [
+          "Systems integration",
+          "Coordinate electrical, lighting, HVAC and other required systems with the finished layout."
+        ],
+        [
+          "Finish quality",
+          "Carry flooring, trim, doors and visible transitions with the same standards used elsewhere in the home."
+        ]
+      ]
+    },
+    {
+      "id": "decks-patios",
+      "title": "Decks & Patios",
+      "inquiryType": "Deck / Patio Construction",
+      "summary": "Decks and patios planned as durable extensions of the home, with careful attention to structure, drainage, circulation and finish.",
+      "introduction": "Outdoor living works best when it feels connected to the house and performs well through changing weather. Linart plans decks and patios around structure, drainage, stairs and railings, circulation and exterior integration.",
+      "planning": "A deck or patio is more than an isolated platform or slab. Linart treats the work as an extension of the home, coordinating access, structure, drainage and finish so the completed space works naturally with the property.",
+      "photo": {
+        "asset": "structural-deck-framing",
+        "caption": "Deck framing and foundation work at a New Jersey home"
+      },
+      "details": [
+        "Custom decks",
+        "Patio construction",
+        "Railings + stairs",
+        "Exterior integration"
+      ],
+      "priorities": [
+        [
+          "Structure",
+          "Plan framing, support and connection details around the home and intended outdoor use."
+        ],
+        [
+          "Drainage and exposure",
+          "Consider water movement and exterior conditions as part of the project from the start."
+        ],
+        [
+          "Circulation",
+          "Coordinate stairs, doors, landings and movement between the home, deck or patio and yard."
+        ],
+        [
+          "Exterior integration",
+          "Carry materials, proportions and finish details so the outdoor work belongs with the house."
+        ]
+      ]
+    }
+  ]
+}
