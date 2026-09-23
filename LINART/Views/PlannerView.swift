@@ -344,7 +344,7 @@ struct ProjectStudioView: View {
     }
 
     @MainActor private func importPhotos() async {
-        guard !importing else { return }
+        guard !importing, !pickedPhotos.isEmpty else { return }
         importing = true
         defer { importing = false; pickedPhotos = [] }
         var added = 0
