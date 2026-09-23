@@ -16,6 +16,7 @@ There are no third-party runtime packages, API keys, project generators or packa
 - Native Home, Projects, My Project and About tabs.
 - Searchable portfolio with full-screen, swipeable photo galleries.
 - Saved projects and a preparation checklist persisted on the device.
+- Optional private Project Studio: guided prompts, up to eight device-selected photos, up to ten inspiration URLs, on-device draft storage and a reviewable photo-inclusive PDF export.
 - Seven service detail pages and New Jersey service-area coverage.
 - A native inquiry form matching the existing website's JSON contract.
 - Input validation, explicit send consent, guarded submissions, visible errors and email/share fallbacks.
@@ -26,9 +27,13 @@ There are no third-party runtime packages, API keys, project generators or packa
 
 Requests go to `https://linartinc.com/contact.php` only after the user chooses Send inquiry. The app requires both a successful HTTP status and `ok: true` before showing success. It never silently retries. A timeout or network failure retains the entered details and explains that delivery is unconfirmed. Timing and description are optional, matching the current website handler. Changing a service CTA only changes the selected service, preserving the other draft fields.
 
-Drafts live in memory and are cleared after confirmed success. Saved projects and checklist progress use local preferences. The About screen can clear all local app data. Sending an inquiry is not appointment booking, a price quote or a guarantee of email delivery to an inbox. No live inquiry was submitted during reconstruction or audit.
+Initial inquiry drafts live in memory and are cleared after confirmed success. Saved projects and checklist progress use local preferences. The optional Studio is a separate encrypted-at-rest local app-file draft containing photo copies and written planning details. The About screen can clear all local app data, including the Studio. Sending an inquiry is not appointment booking, a price quote or a guarantee of email delivery to an inbox. No live inquiry was submitted during reconstruction or audit.
 
-The website backend is maintained separately. No server credentials, contact logs or backend deployment files are included. The source does not include customer accounts, payments, scheduling, push notifications or a client job-status portal because those are not available in the reference website.
+The Studio does not transmit photos or notes to the website server automatically. The user can export a PDF and choose a sharing destination, including emailing it manually to services@linartinc.com; the app does not verify that this share was delivered. The current contact.php API supplies no authenticated inquiry reference or secure follow-up/photo-upload endpoints, so Studio details are **not automatically associated with the original inquiry**. Such server integration requires a separate, authorized backend implementation. The website backend is maintained separately. No server credentials, contact logs or backend deployment files are included. The source does not include customer accounts, payments, scheduling, push notifications or a client job-status portal because those are not available in the reference website.
+
+## Project Studio status
+
+The Studio code was added after the original static audit report. Its photos, local persistence, PDF export and optional post-inquiry invitation have **not** been compiled or device-tested. The original verification PASS in Documentation/VERIFICATION.json applies only to the pre-Studio revision. See Documentation/PROJECT-STUDIO-IMPLEMENTATION.md for outstanding backend and release requirements.
 
 ## Verification status
 
