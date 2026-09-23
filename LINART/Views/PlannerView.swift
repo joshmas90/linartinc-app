@@ -169,6 +169,8 @@ struct ProjectStudioView: View {
     @State private var photoPurpose = "Existing space"
     @State private var notice: String?
     @State private var shareURL: URL?
+    @State private var sharing = false
+    @State private var suppressNextSave = false
     @State private var showReview = false
     @State private var confirmClear = false
     @State private var importing = false
@@ -274,15 +276,19 @@ struct ProjectStudioView: View {
         .navigationBarTitleDisplayMode(.inline)
         .scrollContentBackground(.hidden)
         .background(Brand.cream)
-        .onChange(of: draft) { _, _ in saveDraft(silent: true) }
+        .onChange(of: draft) { _, _ in
+            if suppressNextSave { suppressNextSave = false } else { saveDraft(silent: true) }
+        }
         .onChange(of: pickedPhotos) { _, _ in
             Task { await importPhotos() }
         }
         .sheet(isPresented: $showReview) { reviewSheet }
-        .sheet(item: $shareURL) { url in StudioShareSheet(items: [url]) }
+        .sheet(isPresented: $sharing) {
+            if let shareURL { StudioShareSheet(items: [shareURL]) }
+        }
         .confirmationDialog("Remove your saved studio?", isPresented: $confirmClear, titleVisibility: .visible) {
             Button("Remove all photos and answers", role: .destructive) {
-                do { try StudioDraft.clear(); draft = StudioDraft(); notice = "The local studio was cleared." }
+                do { try StudioDraft.clear(); suppressNextSave = true; draft = StudioDraft(); notice = "The local studio was cleared." }
                 catch { notice = "Could not clear all files. Please try again." }
             }
         } message: { Text("This deletes the private studio draft on this device. It does not alter an inquiry already sent to LINART.") }
@@ -374,6 +380,7 @@ struct ProjectStudioView: View {
             let url = try StudioPDF.create(draft: draft)
             showReview = false
             shareURL = url
+            sharing = true
         } catch { notice = "The PDF could not be prepared. Check storage and try again." }
     }
 }
@@ -429,6 +436,3 @@ private enum StudioPDF {
     }
 }
 
-extension URL: @retroactive Identifiable {
-    public var id: String { absoluteString }
-}
