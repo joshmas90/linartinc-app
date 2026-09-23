@@ -178,6 +178,24 @@ struct ProjectStudioView: View {
     private let types = ["Existing space", "Inspiration", "Plans or drawings"]
     private let services = Inquiry.serviceOptions
 
+    private var tailoredPrompt: String {
+        switch draft.projectType {
+        case "Kitchen Remodeling": return "What would you change about the layout, storage, appliances or entertaining space?"
+        case "Bathroom Remodeling": return "What would you change about the shower, bath, storage, accessibility or fixtures?"
+        case "New Custom Home Construction": return "What kind of home, rooms, site and architectural character are you envisioning?"
+        case "Home Addition": return "What new rooms or square footage do you need, and how should the addition connect to your home?"
+        case "Whole-Home Renovation": return "Which spaces need to change, and what should remain as it is?"
+        case "Basement Finishing": return "How would you use the finished basement, and are there any known moisture or ceiling-height concerns?"
+        case "Deck / Patio Construction": return "How would you use the outdoor space, and what are your preferences for materials, shade and access?"
+        default: return "What would you love to change or create, and how should the finished space feel?"
+        }
+    }
+
+    private var progress: Int {
+        [draft.goals, draft.existingConditions, draft.style, draft.priorities, draft.investment, draft.timeline, draft.constraints]
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.count
+    }
+
     var body: some View {
         Form {
             Section {
@@ -186,6 +204,12 @@ struct ProjectStudioView: View {
                     Text("Your vision, beautifully organized.").font(.system(.title, design: .serif))
                     Text("Add as much or as little as you wish. Your initial inquiry is already separate from this studio.")
                         .font(.subheadline).foregroundStyle(.secondary)
+                    HStack {
+                        Text("\(progress) of 7 planning topics explored").font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Text("No required questions").font(.caption).foregroundStyle(Brand.bronze)
+                    }
+                    ProgressView(value: Double(progress), total: 7).tint(Brand.bronze)
                     Label("Private on this device until you choose to share", systemImage: "lock.shield")
                         .font(.caption).foregroundStyle(Brand.bronze)
                 }.padding(.vertical, 7)
@@ -198,7 +222,7 @@ struct ProjectStudioView: View {
                     Text("Not decided").tag("")
                     ForEach(services, id: \.self) { Text($0).tag($0) }
                 }
-                studioField("What would you love to create?", text: $draft.goals)
+                studioField(tailoredPrompt, text: $draft.goals)
                 studioField("What does the space look like today?", text: $draft.existingConditions)
             }
             Section {
