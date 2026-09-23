@@ -27,7 +27,7 @@ struct AboutView: View {
                 Link(destination: Company.website) { Label("Visit linartinc.com", systemImage: "safari") }
                 Divider()
                 NavigationLink("Privacy & app information") { PrivacyView() }
-                Button("Clear saved projects and checklist", role: .destructive) { confirmReset = true }
+                Button("Clear all local app data", role: .destructive) { confirmReset = true }
                 Text("LINART · Version \(version)")
                     .font(.caption).foregroundStyle(.secondary)
             }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
@@ -35,8 +35,11 @@ struct AboutView: View {
         .background(Brand.cream)
         .navigationTitle("About LINART").navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("Clear data saved in this app?", isPresented: $confirmReset, titleVisibility: .visible) {
-            Button("Clear local data", role: .destructive) { store.clearLocalData() }
-        } message: { Text("Removes saved projects, checklist progress and the current inquiry draft. It does not delete inquiries already sent to LINART.") }
+            Button("Clear local data", role: .destructive) {
+                store.clearLocalData()
+                try? StudioDraft.clear()
+            }
+        } message: { Text("Removes saved projects, checklist progress, the inquiry draft and your private Project Studio including photos. It does not delete inquiries already sent to LINART.") }
     }
 }
 
@@ -74,14 +77,15 @@ struct PrivacyView: View {
             Section("On your device") {
                 Text("Saved project identifiers and checklist progress are stored in the app’s local preferences and may be included in your device backups. Use Clear saved projects and checklist in About to remove them.")
                 Text("Inquiry drafts are kept in memory, not deliberately saved to disk by the app. They are cleared after a successful submission, when you choose Clear, or when the app process ends.")
+                Text("Your optional Project Studio draft, inspiration links, notes and imported photo copies are stored on this device in protected app files. They may be included in device backups. Clear your studio from its screen, or clear all local data in About. Removing the app also removes its app data.")
             }
             Section("When you send an inquiry") {
                 Text("The form sends your name, email, phone number, project city or ZIP, selected service, timing, preferred contact method and optional project description over HTTPS to linartinc.com/contact.php.")
                 Text("LINART’s website service processes and stores inquiry details, records the request IP address and submission time, and emails the team so they can respond. Contact LINART about access to or deletion of an inquiry already sent.")
-                Text("The app does not run advertising, tracking or analytics SDKs and does not request access to your camera, photo library, contacts or device location.")
+                Text("The app does not run advertising, tracking or analytics SDKs. The optional Project Studio uses the system photo picker to access only images you select; it does not request broad photo library, camera, contacts or device location permissions.")
             }
             Section("Other apps and services") {
-                Text("Calling, emailing, sharing or opening the website hands control to the app or service you choose. Their own privacy practices apply. Sharing a project brief includes the information you entered.")
+                Text("Calling, emailing, sharing or opening the website hands control to the app or service you choose. Their own privacy practices apply. Sharing a project brief exports a PDF containing the information you entered and the photos you added. You choose a destination and whether to send it; LINART cannot confirm delivery from this app. Your initial inquiry and shared PDF are not automatically linked by the server.")
             }
             Section("Contact") { ContactActions() }
         }
