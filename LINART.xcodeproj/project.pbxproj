@@ -5,6 +5,8 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+        "D098C4ED72E90C21FE84AD11" = { "isa" = "PBXFileReference"; "lastKnownFileType" = "sourcecode.swift"; "path" = "Services/StudioClient.swift"; "sourceTree" = "<group>"; };
+        "D098C4ED72E90C21FE84AD12" = { "isa" = "PBXBuildFile"; "fileRef" = "D098C4ED72E90C21FE84AD11"; };
 		"F304ED7344A8A80C32444E98" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -213,6 +215,7 @@
 				"489F4FDEC0C533CA240ABC60",
 				"66BBC527D9EFE42D076FD8E7",
 				"9FD3BB804765178255604721",
+                "D098C4ED72E90C21FE84AD11",
 				"B5D8F44DEED0EC1FB84199C5",
 				"E889AAD6F95EB68E4FD26420",
 				"7E93F30BBD2F7A4608A0BFAC",
@@ -265,6 +268,7 @@
 				"831B0E7F3DF715B246614B8E",
 				"022600ABC65BA9C94F7A6544",
 				"6AFAA81D7FAAA136DC415372",
+                "D098C4ED72E90C21FE84AD12",
 				"8CF04E9947790021BEA94E32",
 				"E3207B51A5C262F8CFA4AFAF",
 				"CEA8C1DD574E09977C6A5B78",

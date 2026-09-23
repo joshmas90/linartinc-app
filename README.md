@@ -16,7 +16,7 @@ There are no third-party runtime packages, API keys, project generators or packa
 - Native Home, Projects, My Project and About tabs.
 - Searchable portfolio with full-screen, swipeable photo galleries.
 - Saved projects and a preparation checklist persisted on the device.
-- Optional private Project Studio: guided prompts, up to eight device-selected photos, up to ten inspiration URLs, on-device draft storage and a reviewable photo-inclusive PDF export.
+- Optional private Project Studio: guided prompts, per-inquiry local drafts, verified online access, up to eight photos, ten inspiration URLs, conditional PDF document uploads, cloud saves and submissions, and manual PDF export. Hosted configuration and Xcode verification are required before release.
 - Seven service detail pages and New Jersey service-area coverage.
 - A native inquiry form matching the existing website's JSON contract.
 - Input validation, explicit send consent, guarded submissions, visible errors and email/share fallbacks.
@@ -29,11 +29,11 @@ Requests go to `https://linartinc.com/contact.php` only after the user chooses S
 
 Initial inquiry drafts live in memory and are cleared after confirmed success. Saved projects and checklist progress use local preferences. The optional Studio is a separate encrypted-at-rest local app-file draft containing photo copies and written planning details. The About screen can clear all local app data, including the Studio. Sending an inquiry is not appointment booking, a price quote or a guarantee of email delivery to an inbox. No live inquiry was submitted during reconstruction or audit.
 
-The Studio does not transmit photos or notes to the website server automatically. The user can export a PDF and choose a sharing destination, including emailing it manually to services@linartinc.com; the app does not verify that this share was delivered. The current contact.php API supplies no authenticated inquiry reference or secure follow-up/photo-upload endpoints, so Studio details are **not automatically associated with the original inquiry**. Such server integration requires a separate, authorized backend implementation. The website backend is maintained separately. No server credentials, contact logs or backend deployment files are included. The source does not include customer accounts, payments, scheduling, push notifications or a client job-status portal because those are not available in the reference website.
+The Studio now has source integration with the website repository's private PHP/Supabase backend. Entering photos or text keeps changes local; explicit online save/submission uploads them. Selecting a PDF sends it immediately only when server-side scanning is enabled. LINART can view online drafts. Manual sharing is separate. No online backend was deployed in this session; only the unrelated JCA Supabase project is currently connected.
 
 ## Project Studio status
 
-The Studio code was added after the original static audit report. Its photos, local persistence, PDF export and optional post-inquiry invitation have **not** been compiled or device-tested. The original verification PASS in Documentation/VERIFICATION.json applies only to the pre-Studio revision. See Documentation/PROJECT-STUDIO-IMPLEMENTATION.md for outstanding backend and release requirements.
+See `Documentation/PROJECT-STUDIO-IMPLEMENTATION.md` and the website repository's release/deployment reports. The Studio has not been compiled or device-tested. Current verification records distinguish grammar/structure checks from Xcode tests; no static PASS means the app is release-ready.
 
 ## Verification status
 

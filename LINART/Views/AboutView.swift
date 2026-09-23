@@ -77,15 +77,20 @@ struct PrivacyView: View {
             Section("On your device") {
                 Text("Saved project identifiers and checklist progress are stored in the app’s local preferences and may be included in your device backups. Use Clear saved projects and checklist in About to remove them.")
                 Text("Inquiry drafts are kept in memory, not deliberately saved to disk by the app. They are cleared after a successful submission, when you choose Clear, or when the app process ends.")
-                Text("Your optional Project Studio draft, inspiration links, notes and imported photo copies are stored on this device in protected app files. They may be included in device backups. Clear your studio from its screen, or clear all local data in About. Removing the app also removes its app data.")
+                Text("Your optional Project Studio draft, inspiration links, notes and imported photo copies are stored on this device in protected app files. New Studio files are excluded from device backups. Clear the device draft from its screen, or clear all local data in About. Online copies are separate. Removing the app also removes its app data.")
             }
             Section("When you send an inquiry") {
                 Text("The form sends your name, email, phone number, project city or ZIP, selected service, timing, preferred contact method and optional project description over HTTPS to linartinc.com/contact.php.")
                 Text("LINART’s website service processes and stores inquiry details, records the request IP address and submission time, and emails the team so they can respond. Contact LINART about access to or deletion of an inquiry already sent.")
                 Text("The app does not run advertising, tracking or analytics SDKs. The optional Project Studio uses the system photo picker to access only images you select; it does not request broad photo library, camera, contacts or device location permissions.")
             }
+            Section("Your optional online Studio") {
+                Text("When you choose to save online, LINART stores your planning answers, inspiration links and selected photos privately using Supabase. Choosing a PDF uploads it immediately after you select the document. LINART’s authorized team can review saved drafts, submitted briefs and attachments to discuss your project.")
+                Text("Access uses an email verification code and a private inquiry receipt. Short-lived access tokens and receipts are stored in this device’s Keychain. There is no password to create. Codes expire; you can request another when returning.")
+                Text("You can request online project deletion in Studio or contact services@linartinc.com. This immediately closes client access while LINART reviews removal, including records that must be retained. Clearing local data does not delete online records, email copies or exported PDFs.")
+            }
             Section("Other apps and services") {
-                Text("Calling, emailing, sharing or opening the website hands control to the app or service you choose. Their own privacy practices apply. Sharing a project brief exports a PDF containing the information you entered and the photos you added. You choose a destination and whether to send it; LINART cannot confirm delivery from this app. Your initial inquiry and shared PDF are not automatically linked by the server.")
+                Text("Calling, emailing, sharing or opening the website hands control to the app or service you choose. Their own privacy practices apply. Sharing a project brief exports a PDF containing the information you entered and the photos you added. You choose a destination and whether to send it; LINART cannot confirm delivery from this app. An online Studio brief is linked to your verified inquiry; a manually shared PDF is a separate copy.")
             }
             Section("Contact") { ContactActions() }
         }

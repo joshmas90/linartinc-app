@@ -58,5 +58,8 @@ final class AppStore: ObservableObject {
         defaults.removeObject(forKey: "linart.favorites")
         defaults.removeObject(forKey: "linart.planningSteps")
         inquiry = Inquiry()
+        let root=FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("LINARTProjectStudio",isDirectory:true)
+        try? FileManager.default.removeItem(at:root)
+        StudioVault.clear()
     }
 }

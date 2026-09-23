@@ -4,6 +4,9 @@ struct InquiryResponse: Decodable {
     let ok: Bool
     let error: String?
     let fields: [String: String]?
+    let inquiry_id: String?
+    let receipt: String?
+    let studio_available: Bool?
 }
 
 enum InquiryError: LocalizedError {
@@ -37,7 +40,8 @@ struct InquiryClient {
         self.endpoint = endpoint
     }
 
-    func send(_ inquiry: Inquiry) async throws {
+    @discardableResult
+    func send(_ inquiry: Inquiry) async throws -> InquiryResponse {
         let errors = inquiry.validationErrors
         guard errors.isEmpty else {
             throw InquiryError.rejected("Please review the highlighted fields.", errors)
@@ -60,11 +64,13 @@ struct InquiryClient {
               let result = try? JSONDecoder().decode(InquiryResponse.self, from: data) else {
             throw InquiryError.unconfirmed
         }
+        if httpResponse.statusCode >= 500 || httpResponse.statusCode == 409 { throw InquiryError.unconfirmed }
         guard (200..<300).contains(httpResponse.statusCode), result.ok else {
             throw InquiryError.rejected(
                 result.error ?? "Delivery could not be confirmed. Call or email LINART for help.",
                 result.fields ?? [:]
             )
         }
+        return result
     }
 }

@@ -20,6 +20,21 @@ final class InquiryTests: XCTestCase {
         XCTAssertEqual(Set(inquiry.validationErrors.keys), Set(["service", "timing", "contact", "message"]))
     }
 
+    func testRequestIdentitySurvivesNormalizationAndOptionalContact() {
+        var inquiry = validInquiry()
+        inquiry.contact = ""
+        XCTAssertTrue(inquiry.validationErrors.isEmpty)
+        XCTAssertEqual(inquiry.request_id, inquiry.normalized.request_id)
+        XCTAssertNotEqual(inquiry.request_id, Inquiry().request_id)
+    }
+
+    func testOnlineBriefDecodesWithoutClientSuppliedLinkIdentity() throws {
+        let json = #"{"answers":{"goals":"Daylight"},"links":[{"url":"https://example.com","note":"Window"}],"revision":2,"submitted_at":null,"submitted_revision":null}"#
+        let brief = try JSONDecoder().decode(RemoteStudio.self, from: Data(json.utf8))
+        XCTAssertEqual(brief.links.first?.note, "Window")
+        XCTAssertEqual(brief.revision, 2)
+    }
+
     func testNormalizationAndEmailEncoding() throws {
         var inquiry = validInquiry()
         inquiry.name = "  Test Homeowner\n"
@@ -35,7 +50,7 @@ final class InquiryTests: XCTestCase {
     func testEncodedPayloadMatchesServerFields() throws {
         let data = try JSONEncoder().encode(validInquiry())
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
-        XCTAssertEqual(Set(json.keys), Set(["name", "email", "phone", "city", "service", "timing", "contact", "message", "company"]))
+        XCTAssertEqual(Set(json.keys), Set(["name", "email", "phone", "city", "service", "timing", "contact", "message", "company", "request_id"]))
         XCTAssertEqual(json["company"] as? String, "")
     }
 
@@ -69,6 +84,13 @@ final class InquiryTests: XCTestCase {
         XCTAssertTrue(restored.brief.contains("https://example.com/kitchen"))
         XCTAssertTrue(restored.brief.contains("North wall"))
         XCTAssertTrue(Inquiry().validationErrors.keys.contains("phone"))
+    }
+
+    func testStudioDirectoriesAreBoundToInquiryNotGlobalSelection() {
+        let first = "10000000-0000-4000-8000-000000000001"
+        let second = "10000000-0000-4000-8000-000000000002"
+        XCTAssertNotEqual(StudioDraft.directory(for: first), StudioDraft.directory(for: second))
+        XCTAssertEqual(StudioDraft.directory(for: first).lastPathComponent, first)
     }
 
     func testEmptyStudioNeverRequiresASecondSubmission() throws {

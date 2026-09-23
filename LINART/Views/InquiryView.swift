@@ -7,7 +7,9 @@ struct InquiryView: View {
     @State private var errors: [String: String] = [:]
     @State private var errorMessage: String?
     @State private var isSending = false
+    @State private var deliveryUncertain = false
     @State private var sent = false
+    @State private var accessNotice: String?
     @State private var consent = false
     @State private var confirmClear = false
     @State private var emailUnavailable = false
@@ -83,6 +85,7 @@ struct InquiryView: View {
                 }
                 fieldError("timing")
                 Picker("Contact me by", selection: $store.inquiry.contact) {
+                    Text("No preference").tag("")
                     ForEach(Inquiry.contactOptions, id: \.self) { Text($0).tag($0) }
                 }
                 fieldError("contact")
@@ -113,7 +116,7 @@ struct InquiryView: View {
                     }
                 }
                 .buttonStyle(PrimaryButtonStyle())
-                .disabled(isSending || !consent)
+                .disabled(isSending || !consent || deliveryUncertain)
                 .opacity(consent ? 1 : 0.5)
                 if !consent { Text("Please agree above before sending.").font(.caption).foregroundStyle(.secondary) }
             }
@@ -151,6 +154,8 @@ struct InquiryView: View {
                     }.buttonStyle(PrimaryButtonStyle())
                 }
                 .padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 18))
+                if let accessNotice { Text(accessNotice).font(.footnote) }
+                Button("Return to Studio later") { dismiss() }.buttonStyle(.bordered)
                 Button("Finish without adding details") { dismiss() }.buttonStyle(.bordered)
                 ContactActions()
             }.padding(28).frame(maxWidth: 700).frame(maxWidth: .infinity)
@@ -177,7 +182,11 @@ struct InquiryView: View {
         sendTask = Task { @MainActor in
             defer { isSending = false }
             do {
-                try await InquiryClient().send(snapshot)
+                let response = try await InquiryClient().send(snapshot)
+                if let id=response.inquiry_id, let receipt=response.receipt {
+                    do { try StudioVault.accept(StudioReceipt(id:id,receipt:receipt,email:snapshot.email,service:snapshot.service)) }
+                    catch { accessNotice="Your inquiry was received, but private Studio access could not be saved. Contact LINART for help returning to it." }
+                }
                 guard !Task.isCancelled else { return }
                 sent = true
                 store.inquiry = Inquiry()
@@ -185,6 +194,7 @@ struct InquiryView: View {
                 guard !Task.isCancelled else { return }
                 errorMessage = error.localizedDescription
                 if case let .rejected(_, fields) = error { errors = fields }
+                if case .unconfirmed = error { deliveryUncertain = true }
             } catch {
                 errorMessage = InquiryError.unconfirmed.localizedDescription
             }

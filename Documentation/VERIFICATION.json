@@ -1,29 +1,19 @@
 {
-  "status": "PASS",
-  "checks": [
-    "Xcode object graph and membership: 63 objects, 15 Swift sources, 3 resources",
-    "Shared scheme, app/test targets and workspace XML parsed",
-    "JSON, XML, Info.plist and privacy manifest validated",
-    "Catalog: 7 projects, 7 services, 40 catalog photo references, 43 image assets",
-    "Opaque 1024 x 1024 app icon and asset catalog file references validated",
-    "No build workflows, dependencies, signing material or generated binaries in package",
-    "Independent OpenStep parser accepted the Xcode project",
-    "Tree-sitter Swift syntax parsing passed for 15 files (not compiler type checking)",
-    "Decoded all 44 bundled images; image size limits and absence of EXIF confirmed",
-    "Inquiry service, timing and contact values match current website PHP handler exactly",
-    "All project/service inquiry actions map to allowed backend values"
-  ],
-  "file_count": 120,
-  "build_initiated": false,
-  "xctest_executed": false,
   "date": "2026-09-23",
-  "file_count_basis": "Final source package, including this report and MANIFEST.sha256; excludes .git",
-  "environment": "Windows; static audit only",
-  "website_reference_commit": "45ee6b05b0148a226f7a97717df6aa25a35d5c29",
-  "limitations": [
-    "No Xcode build or Apple compiler type checking",
-    "No simulator or device run",
-    "Included XCTest suite not executed",
-    "No live form POST, test email, signing or distribution"
-  ]
+  "scope": "Project Studio v1 source verification only",
+  "release_ready": false,
+  "checks": {
+    "swift_grammar": "passed; tree-sitter, not type checking",
+    "xcode_project_and_resources": "passed structural validation; final manifest recomputed",
+    "privacy_manifest": "parsed; category keys checked against Apple documentation",
+    "xcode_build": "not run; no Apple SDK",
+    "xctest": "source updated; not run",
+    "simulator_and_devices": "not run",
+    "hosted_supabase": "not deployed; LINART project unavailable",
+    "production_email": "not sent",
+    "codemagic": "not triggered",
+    "signing_and_distribution": "not performed"
+  },
+  "backend_tests": "See website docs/PROJECT-STUDIO-RELEASE-READINESS.md",
+  "historical_report": "ORIGINAL-VERIFICATION.json is the pre-Studio historical result, not validation of this revision."
 }

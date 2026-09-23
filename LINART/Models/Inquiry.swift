@@ -1,6 +1,7 @@
 import Foundation
 
 struct Inquiry: Codable, Equatable {
+    var request_id = UUID().uuidString.lowercased()
     var name = ""
     var email = ""
     var phone = ""
@@ -52,7 +53,7 @@ struct Inquiry: Codable, Equatable {
         if !value.timing.isEmpty && !Self.timingOptions.contains(value.timing) {
             errors["timing"] = "Choose a project timing or leave it blank."
         }
-        if !Self.contactOptions.contains(value.contact) {
+        if !value.contact.isEmpty && !Self.contactOptions.contains(value.contact) {
             errors["contact"] = "Choose how we should contact you."
         }
         if value.message.count > 1000 {
