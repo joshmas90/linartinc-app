@@ -282,8 +282,10 @@ struct ProjectStudioView: View {
         .onChange(of: pickedPhotos) { _, _ in
             Task { await importPhotos() }
         }
-        .sheet(isPresented: $showReview) { reviewSheet }
-        .sheet(isPresented: $sharing) {
+        .sheet(isPresented: $showReview, onDismiss: {
+            if shareURL != nil { sharing = true }
+        }) { reviewSheet }
+        .sheet(isPresented: $sharing, onDismiss: { shareURL = nil }) {
             if let shareURL { StudioShareSheet(items: [shareURL]) }
         }
         .confirmationDialog("Remove your saved studio?", isPresented: $confirmClear, titleVisibility: .visible) {
@@ -380,7 +382,6 @@ struct ProjectStudioView: View {
             let url = try StudioPDF.create(draft: draft)
             showReview = false
             shareURL = url
-            sharing = true
         } catch { notice = "The PDF could not be prepared. Check storage and try again." }
     }
 }
