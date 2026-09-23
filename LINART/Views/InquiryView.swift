@@ -141,7 +141,17 @@ struct InquiryView: View {
                 Text("LINART’s website service confirmed your inquiry. The team can follow up using the contact details you provided.")
                     .lineSpacing(5)
                 Text("Sending an inquiry does not book an appointment or confirm a quote.").font(.subheadline).foregroundStyle(.secondary)
-                Button("Done") { dismiss() }.buttonStyle(PrimaryButtonStyle())
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Would you like to share more of your vision?").font(.system(.title2, design: .serif))
+                    Text("The inquiry above is complete. Our private Project Studio is an optional next step where you can gather photographs, inspiration links and your ideas. You can return later or skip it entirely.")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                    Button("Explore the optional Project Studio") {
+                        store.selectedTab = 2
+                        dismiss()
+                    }.buttonStyle(PrimaryButtonStyle())
+                }
+                .padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 18))
+                Button("Finish without adding details") { dismiss() }.buttonStyle(.bordered)
                 ContactActions()
             }.padding(28).frame(maxWidth: 700).frame(maxWidth: .infinity)
         }.background(Brand.cream)
