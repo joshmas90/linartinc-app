@@ -4,6 +4,8 @@ struct InquiryResponse: Decodable {
     let ok: Bool
     let error: String?
     let fields: [String: String]?
+    let inquiry_id: String?
+    let studio_available: Bool?
 }
 
 enum InquiryError: LocalizedError {
@@ -37,7 +39,8 @@ struct InquiryClient {
         self.endpoint = endpoint
     }
 
-    func send(_ inquiry: Inquiry) async throws {
+    @discardableResult
+    func send(_ inquiry: Inquiry) async throws -> InquiryResponse {
         let errors = inquiry.validationErrors
         guard errors.isEmpty else {
             throw InquiryError.rejected("Please review the highlighted fields.", errors)
@@ -66,5 +69,6 @@ struct InquiryClient {
                 result.fields ?? [:]
             )
         }
+        return result
     }
 }

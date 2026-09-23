@@ -35,7 +35,7 @@ final class InquiryTests: XCTestCase {
     func testEncodedPayloadMatchesServerFields() throws {
         let data = try JSONEncoder().encode(validInquiry())
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
-        XCTAssertEqual(Set(json.keys), Set(["name", "email", "phone", "city", "service", "timing", "contact", "message", "company"]))
+        XCTAssertEqual(Set(json.keys), Set(["name", "email", "phone", "city", "service", "timing", "contact", "message", "company", "request_id"]))
         XCTAssertEqual(json["company"] as? String, "")
     }
 
@@ -78,6 +78,28 @@ final class InquiryTests: XCTestCase {
         XCTAssertTrue(draft.references.isEmpty)
         XCTAssertTrue(draft.brief.contains("Not provided"))
         XCTAssertTrue(draft.brief.contains("No additional notes") == false)
+    }
+
+    func testInquiryReferenceSurvivesNormalization() {
+        let inquiry = validInquiry()
+        XCTAssertEqual(inquiry.request_id, inquiry.normalized.request_id)
+        XCTAssertNotEqual(inquiry.request_id, Inquiry().request_id)
+    }
+
+    func testCloudAnswersExcludeLocalFilesAndEmail() throws {
+        var draft = StudioDraft()
+        draft.inquiryEmail = "private@example.com"
+        draft.photos = [StudioPhoto(filename: "private.jpg", purpose: "Existing space")]
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(StudioAnswers(draft))) as? [String: Any])
+        XCTAssertNil(object["inquiryEmail"])
+        XCTAssertNil(object["photos"])
+        XCTAssertNil(object["projectID"])
+    }
+
+    func testProjectDraftDirectoriesAreIsolated() {
+        var first = StudioDraft(); first.projectID = UUID().uuidString
+        var second = StudioDraft(); second.projectID = UUID().uuidString
+        XCTAssertNotEqual(first.localDirectory, second.localDirectory)
     }
 
     func testBundledCatalogIsComplete() throws {

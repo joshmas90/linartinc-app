@@ -84,8 +84,14 @@ struct PrivacyView: View {
                 Text("LINART’s website service processes and stores inquiry details, records the request IP address and submission time, and emails the team so they can respond. Contact LINART about access to or deletion of an inquiry already sent.")
                 Text("The app does not run advertising, tracking or analytics SDKs. The optional Project Studio uses the system photo picker to access only images you select; it does not request broad photo library, camera, contacts or device location permissions.")
             }
+            Section("Optional cloud Project Studio") {
+                Text("Verify your inquiry email with a one-time code to access only your projects. A short-lived session token is protected in this device’s Keychain. Sign out of Studio or clear local app data to remove it.")
+                Text("Choosing photos or documents and typing answers saves them locally. Save progress to LINART or Submit uploads your chosen information over HTTPS into private Supabase storage and LINART’s project records. Saved cloud drafts are available to authorized LINART personnel; Submit marks the brief ready for review.")
+                Text("We strip metadata from imported photo copies. PDF documents may retain their original metadata. Share only files you intend LINART to review. Removing a file takes effect in cloud storage when you next save. Clearing local data does not delete cloud records or previously emailed copies.")
+                Text("Delete your Studio account and cloud projects from the Studio access screen. For access, correction or deletion of separate emailed inquiries and business records, contact services@linartinc.com. Private download links expire after 60 seconds. LINART does not sell Studio information or use it for advertising.")
+            }
             Section("Other apps and services") {
-                Text("Calling, emailing, sharing or opening the website hands control to the app or service you choose. Their own privacy practices apply. Sharing a project brief exports a PDF containing the information you entered and the photos you added. You choose a destination and whether to send it; LINART cannot confirm delivery from this app. Your initial inquiry and shared PDF are not automatically linked by the server.")
+                Text("Calling, emailing, sharing or opening the website hands control to the app or service you choose. Their own privacy practices apply. Sharing a project brief exports a PDF containing the information you entered and the photos you added. You choose a destination and whether to send it; LINART cannot confirm delivery from this app. Cloud Studio saves and submissions are securely associated with your original inquiry. An exported PDF is a separate copy.")
             }
             Section("Contact") { ContactActions() }
         }

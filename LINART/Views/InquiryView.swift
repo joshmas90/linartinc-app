@@ -83,6 +83,7 @@ struct InquiryView: View {
                 }
                 fieldError("timing")
                 Picker("Contact me by", selection: $store.inquiry.contact) {
+                    Text("No preference").tag("")
                     ForEach(Inquiry.contactOptions, id: \.self) { Text($0).tag($0) }
                 }
                 fieldError("contact")
@@ -151,7 +152,8 @@ struct InquiryView: View {
                     }.buttonStyle(PrimaryButtonStyle())
                 }
                 .padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 18))
-                Button("Finish without adding details") { dismiss() }.buttonStyle(.bordered)
+                Button("Return to Studio later") { dismiss() }.buttonStyle(.bordered)
+                Button("Skip Studio and finish") { dismiss() }.buttonStyle(.bordered)
                 ContactActions()
             }.padding(28).frame(maxWidth: 700).frame(maxWidth: .infinity)
         }.background(Brand.cream)
@@ -177,7 +179,8 @@ struct InquiryView: View {
         sendTask = Task { @MainActor in
             defer { isSending = false }
             do {
-                try await InquiryClient().send(snapshot)
+                let _ = try await InquiryClient().send(snapshot)
+                store.acceptedInquiry(snapshot)
                 guard !Task.isCancelled else { return }
                 sent = true
                 store.inquiry = Inquiry()

@@ -10,6 +10,7 @@ final class AppStore: ObservableObject {
     @Published var inquiry = Inquiry()
     @Published var inquiryPresented = false
     @Published var selectedTab = 0
+    @Published var lastInquiryEmail = ""
     private let defaults: UserDefaults
 
     static let planningSteps = [
@@ -22,6 +23,7 @@ final class AppStore: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        lastInquiryEmail = defaults.string(forKey: "linart.inquiryEmail") ?? ""
         favorites = Set(defaults.stringArray(forKey: "linart.favorites") ?? [])
         completedSteps = Set(defaults.stringArray(forKey: "linart.planningSteps") ?? [])
         reloadCatalog()
@@ -52,7 +54,20 @@ final class AppStore: ObservableObject {
         inquiryPresented = true
     }
 
+    func acceptedInquiry(_ inquiry: Inquiry) {
+        lastInquiryEmail = inquiry.email
+        defaults.set(inquiry.email, forKey: "linart.inquiryEmail")
+    }
+
+    func clearRememberedInquiry() {
+        lastInquiryEmail = ""
+        defaults.removeObject(forKey: "linart.inquiryEmail")
+    }
+
     func clearLocalData() {
+        try? StudioCredential.save(nil)
+        lastInquiryEmail = ""
+        defaults.removeObject(forKey: "linart.inquiryEmail")
         favorites = []
         completedSteps = []
         defaults.removeObject(forKey: "linart.favorites")

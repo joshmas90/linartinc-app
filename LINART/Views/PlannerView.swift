@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 import UIKit
+import UniformTypeIdentifiers
 
 struct PlannerView: View {
     @EnvironmentObject private var store: AppStore
@@ -17,7 +18,7 @@ struct PlannerView: View {
                     .foregroundStyle(.secondary).lineSpacing(4)
 
                 NavigationLink {
-                    ProjectStudioView()
+                    StudioAccessView()
                 } label: {
                     VStack(alignment: .leading, spacing: 14) {
                         Label("YOUR PRIVATE PROJECT STUDIO", systemImage: "square.stack.3d.up")
@@ -91,7 +92,19 @@ struct StudioPhoto: Codable, Identifiable, Equatable {
     var note: String = ""
 }
 
+struct StudioDocument: Codable, Identifiable, Equatable {
+    var id = UUID()
+    var filename: String
+    var note: String = ""
+}
+
 struct StudioDraft: Codable, Equatable {
+    var projectID: String?
+    var remoteVersion: Int?
+    var documents: [StudioDocument]?
+    var removedAssets: [UUID]?
+    var submittedAt: String?
+
     var inquiryEmail = ""
     var projectType = ""
     var goals = ""
@@ -110,17 +123,23 @@ struct StudioDraft: Codable, Equatable {
         return base.appendingPathComponent("LINARTProjectStudio", isDirectory: true)
     }
 
-    static func load() -> StudioDraft {
-        let url = directory.appendingPathComponent("draft.json")
+    var localDirectory: URL {
+        guard let projectID, UUID(uuidString: projectID) != nil else { return Self.directory }
+        return Self.directory.appendingPathComponent(projectID.lowercased(), isDirectory: true)
+    }
+
+    static func load(projectID: String? = nil) -> StudioDraft {
+        var initial = StudioDraft(); initial.projectID = projectID
+        let url = initial.localDirectory.appendingPathComponent("draft.json")
         guard let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode(StudioDraft.self, from: data) else { return StudioDraft() }
+              let decoded = try? JSONDecoder().decode(StudioDraft.self, from: data) else { return initial }
         return decoded
     }
 
     func save() throws {
-        try FileManager.default.createDirectory(at: Self.directory, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: localDirectory, withIntermediateDirectories: true)
         let data = try JSONEncoder().encode(self)
-        try data.write(to: Self.directory.appendingPathComponent("draft.json"), options: [.atomic, .completeFileProtectionUnlessOpen])
+        try data.write(to: localDirectory.appendingPathComponent("draft.json"), options: [.atomic, .completeFileProtectionUnlessOpen])
     }
 
     static func clear() throws {
@@ -153,6 +172,9 @@ struct StudioDraft: Codable, Equatable {
         INSPIRATION LINKS
         \(referencesText.isEmpty ? "None" : referencesText)
 
+        DOCUMENTS
+        \(documents?.map { "\($0.filename): \($0.note)" }.joined(separator: "\n") ?? "None")
+
         ATTACHED PHOTOGRAPHS
         \(photoText.isEmpty ? "None" : photoText)
 
@@ -162,7 +184,21 @@ struct StudioDraft: Codable, Equatable {
 }
 
 struct ProjectStudioView: View {
-    @State private var draft = StudioDraft.load()
+    let project: StudioProject
+    @State private var draft: StudioDraft
+    @State private var connecting = false
+    @State private var importingDocument = false
+    @State private var confirmReload = false
+    @State private var lastRemote: StudioDetail?
+    @State private var cloudConsent = false
+
+    init(project: StudioProject) {
+        self.project = project
+        var saved = StudioDraft.load(projectID: project.id)
+        if saved.projectType.isEmpty { saved.projectType = project.contact.service }
+        saved.inquiryEmail = project.contact.email
+        _draft = State(initialValue: saved)
+    }
     @State private var pickedPhotos: [PhotosPickerItem] = []
     @State private var newReference = ""
     @State private var newReferenceNote = ""
@@ -210,14 +246,13 @@ struct ProjectStudioView: View {
                         Text("No required questions").font(.caption).foregroundStyle(Brand.bronze)
                     }
                     ProgressView(value: Double(progress), total: 7).tint(Brand.bronze)
-                    Label("Private on this device until you choose to share", systemImage: "lock.shield")
+                    Label("Local until you choose Save to LINART or Submit", systemImage: "lock.shield")
                         .font(.caption).foregroundStyle(Brand.bronze)
                 }.padding(.vertical, 7)
             }
             Section("Your starting point · optional") {
-                TextField("Email used for your inquiry (optional)", text: $draft.inquiryEmail)
-                    .keyboardType(.emailAddress).textContentType(.emailAddress)
-                    .textInputAutocapitalization(.never).autocorrectionDisabled()
+                Text(project.contact.email).font(.subheadline)
+                Text("Linked to your inquiry in \(project.contact.city)").font(.caption).foregroundStyle(.secondary)
                 Picker("Project type", selection: $draft.projectType) {
                     Text("Not decided").tag("")
                     ForEach(services, id: \.self) { Text($0).tag($0) }
@@ -237,14 +272,14 @@ struct ProjectStudioView: View {
                     .font(.caption).foregroundStyle(.secondary)
                 ForEach($draft.photos) { $photo in
                     HStack(alignment: .top, spacing: 12) {
-                        if let image = UIImage(contentsOfFile: StudioDraft.directory.appendingPathComponent(photo.filename).path) {
+                        if let image = UIImage(contentsOfFile: draft.localDirectory.appendingPathComponent(photo.filename).path) {
                             Image(uiImage: image).resizable().scaledToFill()
                                 .frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: 9))
                                 .accessibilityLabel(photo.purpose)
                         }
                         VStack(alignment: .leading, spacing: 7) {
                             Text(photo.purpose).font(.subheadline.weight(.semibold))
-                            TextField("What should LINART notice? (optional)", text: $photo.note, axis: .vertical)
+                            TextField("What should LINART notice? (optional)", text: Binding(get: { photo.note }, set: { photo.note = String($0.prefix(500)) }), axis: .vertical)
                                 .lineLimit(1...3)
                         }
                         Spacer(minLength: 0)
@@ -273,13 +308,33 @@ struct ProjectStudioView: View {
                     }
                 }
             }
-            Section("Considered details · all optional") {
+            Section {
+                DisclosureGroup("Design, investment & site details · optional") {
                 studioField("Style, finishes or materials you like", text: $draft.style)
                 studioField("What matters most to you?", text: $draft.priorities)
                 studioField("Investment range or budget considerations", text: $draft.investment)
                 studioField("Ideal project timing", text: $draft.timeline)
                 studioField("Existing plans, constraints or site access", text: $draft.constraints)
                 studioField("Anything else we should know?", text: $draft.other)
+                }
+            }
+            Section("Plans & documents · optional") {
+                Button("Add a PDF plan", systemImage: "doc.badge.plus") { importingDocument = true }
+                    .disabled((draft.documents?.count ?? 0) >= 4)
+                Text("Up to four PDF documents, 10 MB each. Documents are safety-scanned when uploaded. If scanning is unavailable, you can still add photographs of your plans.").font(.caption).foregroundStyle(.secondary)
+                ForEach(draft.documents ?? []) { document in
+                    VStack(alignment: .leading) {
+                        Text(document.filename).font(.subheadline)
+                        TextField("Document note (optional)", text: Binding(get: { draft.documents?.first(where: { $0.id == document.id })?.note ?? "" }, set: { value in
+                            if let index = draft.documents?.firstIndex(where: { $0.id == document.id }) { draft.documents?[index].note = String(value.prefix(500)) }
+                        }))
+                        Button("Remove document", role: .destructive) {
+                            draft.removedAssets = (draft.removedAssets ?? []) + [document.id]
+                            draft.documents?.removeAll { $0.id == document.id }
+                            try? FileManager.default.removeItem(at: draft.localDirectory.appendingPathComponent(document.filename))
+                        }
+                    }
+                }
             }
             Section {
                 Button("Review your project brief", systemImage: "doc.text.magnifyingglass") {
@@ -287,7 +342,13 @@ struct ProjectStudioView: View {
                 }.buttonStyle(PrimaryButtonStyle())
                 Text("Reviewing does not send anything. You can save and return later, or leave the studio without sharing.")
                     .font(.caption).foregroundStyle(.secondary)
-                Button("Save my progress", systemImage: "square.and.arrow.down") { saveDraft() }
+                Button("Save on this device", systemImage: "square.and.arrow.down") { saveDraft() }
+                Toggle("Share saved answers and selected files privately with LINART", isOn: $cloudConsent).font(.subheadline)
+                Button("Save progress to LINART", systemImage: "icloud.and.arrow.up") { sync(submit: false) }
+                    .disabled(!cloudConsent || importing)
+                Text("Cloud drafts are visible to LINART. Submit marks the brief ready for review; partially completed briefs are welcome. Removed files are deleted from cloud storage on your next save.").font(.caption).foregroundStyle(.secondary)
+                Button("Reload saved project from LINART") { confirmReload = true }
+                if let submittedAt = draft.submittedAt { Text("Last confirmed submission: \(submittedAt)").font(.caption) }
                 Button("Clear my private studio", role: .destructive) { confirmClear = true }
             }
             if let notice {
@@ -297,9 +358,29 @@ struct ProjectStudioView: View {
             }
         }
         .navigationTitle("Project Studio")
+        .disabled(connecting)
+        .scrollDismissesKeyboard(.interactively)
+        .overlay { if connecting { ProgressView("Connecting securely…").padding(24).background(Brand.paper, in: RoundedRectangle(cornerRadius: 16)) } }
         .navigationBarTitleDisplayMode(.inline)
         .scrollContentBackground(.hidden)
         .background(Brand.cream)
+        .task {
+            do {
+                lastRemote = try await StudioClient().detail(id: project.id)
+                if let remote = lastRemote, !FileManager.default.fileExists(atPath: draft.localDirectory.appendingPathComponent("draft.json").path), (remote.project.version > 0 || !remote.assets.isEmpty) {
+                    reloadRemote()
+                } else if let remote = lastRemote, remote.project.version > (draft.remoteVersion ?? 0) {
+                    notice = "A newer saved project is available. Use Reload saved project from LINART before editing it on this device."
+                }
+            }
+            catch { notice = error.localizedDescription }
+        }
+        .fileImporter(isPresented: $importingDocument, allowedContentTypes: [.pdf]) { result in
+            do { try importDocument(result.get()) } catch { notice = error.localizedDescription }
+        }
+        .confirmationDialog("Replace this device’s draft with the saved cloud version?", isPresented: $confirmReload, titleVisibility: .visible) {
+            Button("Reload saved project") { reloadRemote() }
+        } message: { Text("Unsaved changes on this device will be replaced. Your initial inquiry is unaffected.") }
         .onChange(of: draft) { _, _ in
             if suppressNextSave { suppressNextSave = false } else { saveDraft(silent: true) }
         }
@@ -309,12 +390,19 @@ struct ProjectStudioView: View {
         .sheet(isPresented: $showReview, onDismiss: {
             if shareURL != nil { sharing = true }
         }) { reviewSheet }
-        .sheet(isPresented: $sharing, onDismiss: { shareURL = nil }) {
+        .sheet(isPresented: $sharing, onDismiss: {
+            if let shareURL { try? FileManager.default.removeItem(at: shareURL) }
+            shareURL = nil
+        }) {
             if let shareURL { StudioShareSheet(items: [shareURL]) }
         }
         .confirmationDialog("Remove your saved studio?", isPresented: $confirmClear, titleVisibility: .visible) {
             Button("Remove all photos and answers", role: .destructive) {
-                do { try StudioDraft.clear(); suppressNextSave = true; draft = StudioDraft(); notice = "The local studio was cleared." }
+                do {
+                    if FileManager.default.fileExists(atPath: draft.localDirectory.path) { try FileManager.default.removeItem(at: draft.localDirectory) }
+                    suppressNextSave = true; draft = StudioDraft(); draft.projectID = project.id
+                    notice = "The local draft was cleared. Saved cloud information remains; contact LINART to request deletion."
+                }
                 catch { notice = "Could not clear all files. Please try again." }
             }
         } message: { Text("This deletes the private studio draft on this device. It does not alter an inquiry already sent to LINART.") }
@@ -323,7 +411,7 @@ struct ProjectStudioView: View {
     @ViewBuilder private func studioField(_ title: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.subheadline.weight(.medium))
-            TextField("Share your thoughts (optional)", text: text, axis: .vertical)
+            TextField("Share your thoughts (optional)", text: Binding(get: { text.wrappedValue }, set: { text.wrappedValue = String($0.prefix(4000)) }), axis: .vertical)
                 .lineLimit(2...5)
         }.padding(.vertical, 4)
     }
@@ -336,9 +424,13 @@ struct ProjectStudioView: View {
                     Text(draft.brief).font(.subheadline).textSelection(.enabled)
                         .padding(18).frame(maxWidth: .infinity, alignment: .leading)
                         .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
-                    Text("Nothing has been submitted from this studio. Choose Share below, select your email app, address the message to \(Company.email), and send the attached PDF. Your device may offer other sharing destinations.")
+                    Text("Submit sends this brief and its selected files privately to LINART under your original inquiry. Every answer remains optional. You can return and submit updates later.")
                         .font(.footnote).foregroundStyle(.secondary)
-                    Button("Prepare brief and photos to share", systemImage: "square.and.arrow.up") {
+                    Toggle("I agree to share this project brief and its files with LINART", isOn: $cloudConsent)
+                    Button("Submit brief to LINART", systemImage: "paperplane") { showReview = false; sync(submit: true) }
+                        .buttonStyle(PrimaryButtonStyle()).disabled(!cloudConsent || importing || connecting)
+                    Text("You can also export a personal PDF copy. Attached PDF plans are listed, but are not embedded in the exported brief.").font(.caption)
+                    Button("Export a PDF copy", systemImage: "square.and.arrow.up") {
                         prepareBrief()
                     }.buttonStyle(PrimaryButtonStyle())
                     Button("Keep planning for now") { showReview = false }.buttonStyle(.bordered)
@@ -381,13 +473,15 @@ struct ProjectStudioView: View {
                   source.size.width > 0, source.size.height > 0 else { continue }
             let scale = min(1, 1600 / max(source.size.width, source.size.height))
             let size = CGSize(width: source.size.width * scale, height: source.size.height * scale)
-            let renderer = UIGraphicsImageRenderer(size: size)
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            let renderer = UIGraphicsImageRenderer(size: size, format: format)
             let normalized = renderer.image { _ in source.draw(in: CGRect(origin: .zero, size: size)) }
             guard let jpg = normalized.jpegData(compressionQuality: 0.78) else { continue }
             let name = UUID().uuidString + ".jpg"
             do {
-                try FileManager.default.createDirectory(at: StudioDraft.directory, withIntermediateDirectories: true)
-                try jpg.write(to: StudioDraft.directory.appendingPathComponent(name), options: [.atomic, .completeFileProtectionUnlessOpen])
+                try FileManager.default.createDirectory(at: draft.localDirectory, withIntermediateDirectories: true)
+                try jpg.write(to: draft.localDirectory.appendingPathComponent(name), options: [.atomic, .completeFileProtectionUnlessOpen])
                 draft.photos.append(StudioPhoto(filename: name, purpose: photoPurpose))
                 added += 1
             } catch { notice = "A photo could not be saved on this device." }
@@ -396,8 +490,83 @@ struct ProjectStudioView: View {
     }
 
     private func removePhoto(_ photo: StudioPhoto) {
-        try? FileManager.default.removeItem(at: StudioDraft.directory.appendingPathComponent(photo.filename))
+        draft.removedAssets = (draft.removedAssets ?? []) + [photo.id]
+        try? FileManager.default.removeItem(at: draft.localDirectory.appendingPathComponent(photo.filename))
         draft.photos.removeAll { $0.id == photo.id }
+    }
+
+    private func importDocument(_ url: URL) throws {
+        guard (draft.documents?.count ?? 0) < 4 else { return }
+        let allowed = url.startAccessingSecurityScopedResource()
+        defer { if allowed { url.stopAccessingSecurityScopedResource() } }
+        let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+        guard size > 0, size <= 10 * 1024 * 1024 else { throw StudioAPIError(message: "Choose a PDF no larger than 10 MB.") }
+        let data = try Data(contentsOf: url)
+        guard data.starts(with: Data("%PDF-".utf8)) else { throw StudioAPIError(message: "Choose a readable PDF document.") }
+        let document = StudioDocument(filename: UUID().uuidString + ".pdf")
+        try FileManager.default.createDirectory(at: draft.localDirectory, withIntermediateDirectories: true)
+        try data.write(to: draft.localDirectory.appendingPathComponent(document.filename), options: [.atomic, .completeFileProtectionUnlessOpen])
+        draft.documents = (draft.documents ?? []) + [document]
+        notice = "Document saved on this device. Upload happens only when you choose Save to LINART or Submit."
+    }
+
+    private func sync(submit: Bool) {
+        guard !connecting, cloudConsent else { return }
+        saveDraft(silent: true); connecting = true
+        Task { @MainActor in
+            defer { connecting = false }
+            do {
+                let client = StudioClient()
+                let remote = try await client.detail(id: project.id)
+                guard remote.project.version == (draft.remoteVersion ?? 0) else {
+                    throw StudioAPIError(message: "A newer cloud draft exists. Export your local copy if needed, then reload the saved project before making changes.")
+                }
+                for assetID in draft.removedAssets ?? [] { try await client.remove(id: project.id, assetID: assetID) }
+                draft.removedAssets = []
+                let existing = Set(remote.assets.map { $0.id.lowercased() })
+                for photo in draft.photos {
+                    if !existing.contains(photo.id.uuidString.lowercased()) {
+                        let bytes = try Data(contentsOf: draft.localDirectory.appendingPathComponent(photo.filename))
+                        try await client.upload(id: project.id, assetID: photo.id, filename: photo.filename, purpose: photo.purpose, note: photo.note, bytes: bytes, mime: "image/jpeg")
+                    }
+                    try await client.updateNote(id: project.id, assetID: photo.id, note: photo.note)
+                }
+                for document in draft.documents ?? [] {
+                    if !existing.contains(document.id.uuidString.lowercased()) {
+                        let bytes = try Data(contentsOf: draft.localDirectory.appendingPathComponent(document.filename))
+                        try await client.upload(id: project.id, assetID: document.id, filename: document.filename, purpose: "Plans or drawings", note: document.note, bytes: bytes, mime: "application/pdf")
+                    }
+                    try await client.updateNote(id: project.id, assetID: document.id, note: document.note)
+                }
+                let saved = try await client.save(id: project.id, draft: draft, submit: submit)
+                draft.remoteVersion = saved.version; draft.submittedAt = saved.submitted_at
+                try draft.save()
+                notice = submit ? "Your project brief was received by LINART and is ready for review." : "Your progress and selected files are saved privately with LINART. You can return on another device after verifying your email."
+            } catch { notice = error.localizedDescription }
+        }
+    }
+
+    private func reloadRemote() {
+        guard !connecting else { return }; connecting = true
+        Task { @MainActor in
+            defer { connecting = false }
+            do {
+                let client = StudioClient(); let remote = try await client.detail(id: project.id)
+                var restored = StudioDraft(); restored.projectID = project.id; restored.inquiryEmail = project.contact.email
+                restored.remoteVersion = remote.project.version; restored.submittedAt = remote.project.submitted_at
+                remote.project.draft.apply(to: &restored)
+                try FileManager.default.createDirectory(at: restored.localDirectory, withIntermediateDirectories: true)
+                for asset in remote.assets {
+                    guard let uuid = UUID(uuidString: asset.id) else { continue }
+                    let bytes = try await client.download(id: project.id, assetID: asset.id)
+                    let filename = asset.id + (asset.mime == "application/pdf" ? ".pdf" : ".jpg")
+                    try bytes.write(to: restored.localDirectory.appendingPathComponent(filename), options: [.atomic, .completeFileProtectionUnlessOpen])
+                    if asset.mime == "image/jpeg" { restored.photos.append(StudioPhoto(id: uuid, filename: filename, purpose: asset.purpose, note: asset.note)) }
+                    else { restored.documents = (restored.documents ?? []) + [StudioDocument(id: uuid, filename: filename, note: asset.note)] }
+                }
+                draft = restored; try draft.save(); notice = "Saved project loaded."
+            } catch { notice = error.localizedDescription }
+        }
     }
 
     private func prepareBrief() {
@@ -435,28 +604,40 @@ private enum StudioPDF {
             for rawLine in draft.brief.components(separatedBy: "\n") {
                 let text = rawLine.isEmpty ? " " : rawLine
                 let attrs: [NSAttributedString.Key: Any] = [.font: normal, .paragraphStyle: paragraph]
-                let bounding = (text as NSString).boundingRect(with: CGSize(width: 528, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attrs, context: nil)
-                let height = max(16, ceil(bounding.height) + 4)
-                if y + height > 748 { context.beginPage(); y = 45 }
-                (text as NSString).draw(in: CGRect(x: 42, y: y, width: 528, height: height), withAttributes: attrs)
-                y += height
+                var remaining = text
+                while !remaining.isEmpty {
+                    if y > 720 { context.beginPage(); y = 45 }
+                    let available = 748 - y
+                    var low = 1, high = remaining.count, fit = 0
+                    while low <= high {
+                        let middle = (low + high) / 2
+                        let candidate = String(remaining.prefix(middle)) as NSString
+                        let height = ceil(candidate.boundingRect(with: CGSize(width: 528, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attrs, context: nil).height) + 4
+                        if height <= available { fit = middle; low = middle + 1 } else { high = middle - 1 }
+                    }
+                    guard fit > 0 else { context.beginPage(); y = 45; continue }
+                    let chunk = String(remaining.prefix(fit)) as NSString
+                    let height = max(16, ceil(chunk.boundingRect(with: CGSize(width: 528, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attrs, context: nil).height) + 4)
+                    chunk.draw(in: CGRect(x: 42, y: y, width: 528, height: height), withAttributes: attrs)
+                    y += height; remaining = String(remaining.dropFirst(fit))
+                }
             }
             for (index, photo) in draft.photos.enumerated() {
-                guard let image = UIImage(contentsOfFile: StudioDraft.directory.appendingPathComponent(photo.filename).path) else { continue }
+                guard let image = UIImage(contentsOfFile: draft.localDirectory.appendingPathComponent(photo.filename).path) else { continue }
                 context.beginPage()
                 let heading = "PHOTO \(index + 1) · \(photo.purpose)"
                 (heading as NSString).draw(at: CGPoint(x: 42, y: 43), withAttributes: [.font: UIFont.boldSystemFont(ofSize: 16)])
-                let available = CGSize(width: 528, height: 570)
+                let available = CGSize(width: 528, height: 450)
                 let factor = min(available.width / image.size.width, available.height / image.size.height)
                 let size = CGSize(width: image.size.width * factor, height: image.size.height * factor)
                 image.draw(in: CGRect(x: (612 - size.width) / 2, y: 88, width: size.width, height: size.height))
                 let caption = photo.note.isEmpty ? "No additional notes." : photo.note
-                (caption as NSString).draw(in: CGRect(x: 42, y: 682, width: 528, height: 68),
+                (caption as NSString).draw(in: CGRect(x: 42, y: 565, width: 528, height: 180),
                                            withAttributes: [.font: normal])
             }
         }
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("LINART-Project-Brief-\(UUID().uuidString).pdf")
-        try pdf.write(to: url, options: .atomic)
+        try pdf.write(to: url, options: [.atomic, .completeFileProtectionUnlessOpen])
         return url
     }
 }

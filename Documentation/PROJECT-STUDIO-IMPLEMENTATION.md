@@ -1,29 +1,34 @@
-# Optional LINART Project Studio — implementation status
+# Project Studio v1 — source implementation
 
-Updated September 23, 2026. This is an **app-source change only**. No iOS build, simulator test, live inquiry, automatic publishing, or backend deployment was performed.
+Updated September 23, 2026. **Not yet compiled or device-tested. Not deployed.**
 
-## Delivered in the app repository
+The optional Studio now connects to the PHP/Supabase gateway implemented in the separate `joshmas90/linartinc` website repository. See that repository’s `docs/PROJECT-STUDIO-V1.md` for backend design, migration, configuration, privacy, test evidence and release gates.
 
-- The initial inquiry still requires name, email, phone and project location. The existing `contact.php` request is unchanged and must complete independently of any Studio activity.
-- **Only after a confirmed initial inquiry**, the thank-you screen offers an optional path to My Project. The client can finish without adding details.
-- My Project now opens the private Project Studio. It includes project-type-specific prompts, existing-space notes, optional design/priorities/budget/timeline prompts, up to eight device-selected photos, photo notes, up to ten web inspiration URLs and optional URL notes.
-- A draft is saved under the app's Application Support directory using protected local files. Imported images are resized, converted to JPEG and stripped of source metadata in the new copy. No photo picker selection or typed Studio text triggers any network request.
-- A client can review the brief, generate a PDF containing their answers, links and all available photos, and explicitly choose a destination from the iOS share sheet. The client must select an email app, address it to `services@linartinc.com`, and send. The app cannot confirm external delivery. The PDF lives in temporary storage and may remain there until the OS purges its temporary files.
-- The user can clear the Studio draft/photos directly, or clear all local app data in About. Initial inquiry data remains separate.
+Implemented native behavior:
 
-## Not delivered yet — server work
+- The original short inquiry remains independent. A stable request UUID enables server replay protection; uncertain delivery retains details and does not retry automatically. Contact preference is optional.
+- Confirmed inquiry acceptance offers begin, later and skip choices. The project tab provides a passwordless return-access screen; access to a project requires an accepted inquiry and verified email.
+- Email OTP login, device-only Keychain access token, sign-out/reverification, verified project selection and project-scoped protected local drafts. Cached project listings support local editing during an outage when a local session was available.
+- Existing service-specific prompts and LINART photography/branding retained, with progressive disclosure for design, investment and constraints.
+- Eight locally normalized 1600-pixel JPEG photos with captions; ten web links with notes; four optional PDFs up to 10 MB each. Server validation remains authoritative. PDFs require a configured safety scanner; photos of plans are the fallback.
+- Explicit cloud-save consent and a separate review-before-submit action. Partial briefs are valid. Cloud drafts are visible to authorized staff; submitting marks a brief ready for review.
+- Version checks reject stale answer overwrites. New devices can restore cloud answers/files; reload warns before replacing an existing local draft. Uploads may complete before a later save fails, so error copy asks the client to refresh before retrying.
+- Cloud file removal on the next save, client account/cloud-project deletion, local clearing, and updated privacy explanations/declarations.
+- PDF export remains optional and does not claim external delivery. Long answers paginate; document plans are listed rather than embedded. Temporary exported PDFs are removed when the share sheet closes.
 
-The existing `contact.php` contract does **not** supply an authenticated inquiry identifier, photo-upload endpoint, or secure invitation. The PDF sharing flow is a manual fallback, **not** a backend-linked project submission. The app must not imply that photos or notes have reached LINART just because the PDF was prepared or the share sheet was shown.
+Configuration:
 
-A connected, contractor-facing Studio needs an approved server design and deployment with:
-1. A unique inquiry ID returned when the initial inquiry is accepted. Keep its existing fast-submit behavior and response compatibility.
-2. Expiring, single-client invitation tokens or another strong authorization design; never expose one client's project data to another.
-3. Private image storage, limits and content validation on the server, safe file naming, malware scanning where available, explicit media consent and retention/deletion policy.
-4. Idempotent follow-up submission associated with the original inquiry, with an accessible contractor inbox/dashboard and verified notification delivery.
-5. Security testing, documented privacy policy, access controls, recovery and deletion processes.
+- The app calls `https://linartinc.com/contact.php` and `https://linartinc.com/studio/api.php`.
+- No Supabase URL, service-role key, secret key or staff credentials belong in the app.
+- Backend deployment must precede a released app with cloud Studio enabled. The production backend has not been installed by this change.
+- The connected Supabase account currently exposes only JCA. A confirmed LINART target and approved migration are still needed.
 
-## Verification needed before release
+Verification:
 
-Run Xcode type checking and compilation, the existing XCTest suite, simulator and physical iPhone/iPad layout checks, import and remove photo tests, long-response PDF pagination tests, app-restart persistence tests, offline sharing tests, VoiceOver/Dynamic Type checks, and initial inquiry delivery checks. Inspect the PDF recipient experience using real email apps. An initial inquiry must succeed even if the Studio is skipped, closed, interrupted, or cannot save locally.
+- Swift syntax parsing, project source/resource membership and package structure checked. These do not replace Swift type checking.
+- Backend contracts tested separately using a local PHP server, fake HTTPS Supabase, isolated PostgreSQL engine and mail sink. No real client or production email was sent.
+- Additional XCTest cases cover stable inquiry IDs, cloud payload separation and per-project storage isolation. They have not been executed here.
+- Xcode compile, XCTest, iPhone/iPad simulator and device tests, Dynamic Type/VoiceOver, keyboard/safe areas, import/restore, long-PDF pagination and interrupted uploads remain mandatory release gates.
+- No Codemagic build, signing, TestFlight upload, App Store submission or production database migration was started.
 
-`Documentation/VERIFICATION.json` and `MANIFEST.sha256` were generated for the original reconstructed source **before** the Studio edits. Their PASS/digests must not be treated as verification of the current repository revision. Regenerate both after the full app/build audit; do not modify old digest values without recomputing them.
+Do not treat the original `Documentation/AUDIT.md` as verification of this revision. Current checks and limits are recorded in `Documentation/VERIFICATION.json` and the source manifest is recomputed from current files.
