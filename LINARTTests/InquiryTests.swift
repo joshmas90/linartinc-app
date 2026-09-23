@@ -55,6 +55,31 @@ final class InquiryTests: XCTestCase {
         XCTAssertTrue(AppStore(defaults: defaults).completedSteps.isEmpty)
     }
 
+    func testStudioDraftKeepsOptionalFieldsAndReferencesSeparateFromInquiry() throws {
+        var draft = StudioDraft()
+        draft.inquiryEmail = "homeowner@example.com"
+        draft.projectType = "Kitchen Remodeling"
+        draft.goals = "More daylight and storage"
+        draft.references = [StudioReference(url: "https://example.com/kitchen", note: "Cabinet layout")]
+        draft.photos = [StudioPhoto(filename: "example.jpg", purpose: "Existing space", note: "North wall")]
+
+        let restored = try JSONDecoder().decode(StudioDraft.self, from: JSONEncoder().encode(draft))
+        XCTAssertEqual(restored, draft)
+        XCTAssertTrue(restored.brief.contains("More daylight and storage"))
+        XCTAssertTrue(restored.brief.contains("https://example.com/kitchen"))
+        XCTAssertTrue(restored.brief.contains("North wall"))
+        XCTAssertTrue(Inquiry().validationErrors.keys.contains("phone"))
+    }
+
+    func testEmptyStudioNeverRequiresASecondSubmission() throws {
+        let draft = StudioDraft()
+        XCTAssertTrue(draft.goals.isEmpty)
+        XCTAssertTrue(draft.photos.isEmpty)
+        XCTAssertTrue(draft.references.isEmpty)
+        XCTAssertTrue(draft.brief.contains("Not provided"))
+        XCTAssertTrue(draft.brief.contains("No additional notes") == false)
+    }
+
     func testBundledCatalogIsComplete() throws {
         let catalog = try Catalog.load()
         XCTAssertEqual(catalog.projects.count, 7)
