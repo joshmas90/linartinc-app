@@ -422,7 +422,7 @@ private enum StudioPDF {
     static func create(draft: StudioDraft) throws -> URL {
         let page = CGRect(x: 0, y: 0, width: 612, height: 792)
         let renderer = UIGraphicsPDFRenderer(bounds: page)
-        let pdf = renderer.pdfData { context in
+        let pdf: Data = renderer.pdfData { context in
             context.beginPage()
             var y: CGFloat = 44
             let title = UIFont(name: "Georgia-Bold", size: 21) ?? UIFont.boldSystemFont(ofSize: 21)
@@ -435,7 +435,7 @@ private enum StudioPDF {
             for rawLine in draft.brief.components(separatedBy: "\n") {
                 let text = rawLine.isEmpty ? " " : rawLine
                 let attrs: [NSAttributedString.Key: Any] = [.font: normal, .paragraphStyle: paragraph]
-                let bounding = (text as NSString).boundingRect(with: CGSize(width: 528, height: .greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attrs, context: nil)
+                let bounding = (text as NSString).boundingRect(with: CGSize(width: 528, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attrs, context: nil)
                 let height = max(16, ceil(bounding.height) + 4)
                 if y + height > 748 { context.beginPage(); y = 45 }
                 (text as NSString).draw(in: CGRect(x: 42, y: y, width: 528, height: height), withAttributes: attrs)
