@@ -17,7 +17,7 @@ struct InquiryView: View {
         Group {
             if sent { successContent } else { inquiryForm }
         }
-        .navigationTitle(sent ? "Thank you" : "Your project")
+        .navigationTitle(sent ? "Inquiry Received" : "Project Inquiry")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -47,27 +47,31 @@ struct InquiryView: View {
     private var inquiryForm: some View {
         Form {
             Section {
-                Text("Tell us what you have in mind.").font(.system(.title2, design: .serif))
+                Text("Tell us about your project.").font(.system(.title, design: .serif))
                 Text("Name, email, phone and project location are required. Timing and additional details are optional.")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
             Section("Your details") {
                 VStack(alignment: .leading, spacing: 5) {
+                    Text("Full name *").font(.caption.weight(.medium)).foregroundStyle(Brand.secondary)
                     TextField("Full name", text: $store.inquiry.name).textContentType(.name)
                     fieldError("name")
                 }
                 VStack(alignment: .leading, spacing: 5) {
+                    Text("Email address *").font(.caption.weight(.medium)).foregroundStyle(Brand.secondary)
                     TextField("Email address", text: $store.inquiry.email)
                         .keyboardType(.emailAddress).textContentType(.emailAddress)
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
                     fieldError("email")
                 }
                 VStack(alignment: .leading, spacing: 5) {
+                    Text("Phone number *").font(.caption.weight(.medium)).foregroundStyle(Brand.secondary)
                     TextField("Phone number", text: $store.inquiry.phone)
                         .keyboardType(.phonePad).textContentType(.telephoneNumber)
                     fieldError("phone")
                 }
                 VStack(alignment: .leading, spacing: 5) {
+                    Text("Project city or ZIP *").font(.caption.weight(.medium)).foregroundStyle(Brand.secondary)
                     TextField("Project city or ZIP", text: $store.inquiry.city).textContentType(.addressCity)
                     fieldError("city")
                 }
@@ -96,7 +100,7 @@ struct InquiryView: View {
                     .font(.subheadline)
                 NavigationLink("How your information is used") { PrivacyView() }
             } footer: {
-                Text("Submitting sends the form to LINART’s existing website service. No information is sent before you tap Send inquiry.")
+                Text("We’ll use these details to respond to your project inquiry. Nothing is sent until you choose Submit Inquiry.")
             }
             if let errorMessage {
                 Section("Please review") {
@@ -108,7 +112,7 @@ struct InquiryView: View {
                 Button(action: submit) {
                     HStack {
                         if isSending { ProgressView().tint(.white) }
-                        Text(isSending ? "Sending…" : "Send inquiry")
+                        Text(isSending ? "Sending…" : "Submit Inquiry")
                         if !isSending { Image(systemName: "arrow.up.right") }
                     }
                 }
@@ -135,25 +139,40 @@ struct InquiryView: View {
 
     private var successContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Image(systemName: "checkmark.circle.fill").font(.system(size: 54)).foregroundStyle(Brand.bronze)
-                SectionHeading(eyebrow: "Inquiry received", title: "Let’s make something lasting.")
-                Text("LINART’s website service confirmed your inquiry. The team can follow up using the contact details you provided.")
-                    .lineSpacing(5)
-                Text("Sending an inquiry does not book an appointment or confirm a quote.").font(.subheadline).foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Would you like to share more of your vision?").font(.system(.title2, design: .serif))
-                    Text("The inquiry above is complete. Our private Project Studio is an optional next step where you can gather photographs, inspiration links and your ideas. You can return later or skip it entirely.")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                    Button("Explore the optional Project Studio") {
+            VStack(spacing: 28) {
+                VStack(spacing: 20) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 34, weight: .medium)).foregroundStyle(.white)
+                        .frame(width: 88, height: 88)
+                        .background(LinearGradient(colors: [Brand.brass, Brand.bronze], startPoint: .topLeading, endPoint: .bottomTrailing), in: Circle())
+                        .accessibilityHidden(true)
+                    Text("Thank You!").font(.system(.largeTitle, design: .serif))
+                    Text("Your inquiry has been received. We’ll follow up using the contact details you provided.")
+                        .foregroundStyle(Brand.secondary).multilineTextAlignment(.center).lineSpacing(4)
+                }.padding(.top, 30)
+                VStack(alignment: .leading, spacing: 16) {
+                    Label("Have more to share?", systemImage: "square.and.pencil")
+                        .font(.headline).foregroundStyle(Brand.bronze)
+                    Text("Collect photos, inspiration and ideas in your private Project Studio. Add as much or as little as you like, whenever you’re ready.")
+                        .foregroundStyle(Brand.secondary).lineSpacing(4)
+                    Text("Your initial inquiry is complete. The Studio is an optional next step.")
+                        .font(.caption).foregroundStyle(Brand.secondary)
+                }.padding(22).background(Brand.paper, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Brand.line))
+                VStack(spacing: 12) {
+                    Button("Continue to Project Studio") {
                         store.selectedTab = 2
+                        store.studioRequested = true
                         dismiss()
                     }.buttonStyle(PrimaryButtonStyle())
+                    Button("Back to Home") {
+                        store.selectedTab = 0
+                        dismiss()
+                    }.buttonStyle(SecondaryButtonStyle())
                 }
-                .padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 18))
-                Button("Finish without adding details") { dismiss() }.buttonStyle(.bordered)
-                ContactActions()
-            }.padding(28).frame(maxWidth: 700).frame(maxWidth: .infinity)
+                Text("An inquiry does not book an appointment or confirm a quote.")
+                    .font(.caption).foregroundStyle(Brand.secondary).multilineTextAlignment(.center)
+            }.padding(24).frame(maxWidth: 700).frame(maxWidth: .infinity)
         }.background(Brand.cream)
     }
 

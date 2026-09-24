@@ -4,11 +4,23 @@ struct ProjectsView: View {
     @EnvironmentObject private var store: AppStore
     @State private var search = ""
     @State private var savedOnly = false
+    @State private var category = "All"
+    private let categories = ["All", "Kitchens", "Bathrooms", "Additions", "Outdoor Living"]
+
+    private func matchesCategory(_ project: PortfolioProject) -> Bool {
+        switch category {
+        case "Kitchens": return project.service == "Kitchen Remodeling"
+        case "Bathrooms": return project.service == "Bathroom Remodeling"
+        case "Additions": return project.service == "Home Addition"
+        case "Outdoor Living": return ["Deck / Patio Construction", "Other Residential Work"].contains(project.service)
+        default: return true
+        }
+    }
 
     private var filteredProjects: [PortfolioProject] {
         let query = search.trimmingCharacters(in: .whitespacesAndNewlines)
         return (store.catalog?.projects ?? []).filter { project in
-            (!savedOnly || store.favorites.contains(project.id)) &&
+            matchesCategory(project) && (!savedOnly || store.favorites.contains(project.id)) &&
             (query.isEmpty || "\(project.title) \(project.category) \(project.scope)".localizedCaseInsensitiveContains(query))
         }
     }
@@ -16,15 +28,30 @@ struct ProjectsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                SectionHeading(eyebrow: "LINART portfolio", title: "Work worth a closer look.")
+                SectionHeading(eyebrow: "LINART portfolio", title: "Our Work")
+                Text("Explore real projects. Find inspiration for what’s possible.")
+                    .foregroundStyle(Brand.secondary)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(categories, id: \.self) { item in
+                            Button { category = item } label: {
+                                Text(item).font(.subheadline.weight(.medium))
+                                    .padding(.horizontal, 17).frame(minHeight: 44)
+                                    .foregroundStyle(category == item ? .white : Brand.ink)
+                                    .background(category == item ? Brand.bronze : Brand.line.opacity(0.5), in: Capsule())
+                            }.buttonStyle(.plain)
+                                .accessibilityAddTraits(category == item ? [.isSelected] : [])
+                        }
+                    }
+                }
                 Toggle("Show saved inspiration", isOn: $savedOnly).tint(Brand.bronze)
                 if store.catalogUnavailable {
                     CatalogUnavailableView()
                 } else if filteredProjects.isEmpty {
                     ContentUnavailableView("No projects found", systemImage: savedOnly ? "heart" : "magnifyingglass", description: Text(savedOnly ? "Save a project with the heart button to keep it here." : "Try searching for kitchens, bathrooms or outdoor living."))
-                    Button("Show all projects") { search = ""; savedOnly = false }.buttonStyle(.bordered)
+                    Button("Show all projects") { search = ""; savedOnly = false; category = "All" }.buttonStyle(.bordered)
                 } else {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 290), spacing: 22)], spacing: 24) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 22)], spacing: 24) {
                         ForEach(filteredProjects) { project in
                             NavigationLink { ProjectDetailView(project: project) } label: { ProjectCard(project: project) }
                                 .buttonStyle(.plain)
@@ -37,7 +64,7 @@ struct ProjectsView: View {
         .background(Brand.cream)
         .navigationTitle("Projects")
         .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $search, prompt: "Find your inspiration")
+        .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Find your inspiration")
     }
 }
 
@@ -45,30 +72,49 @@ struct ProjectDetailView: View {
     let project: PortfolioProject
     @EnvironmentObject private var store: AppStore
     @State private var selectedPhoto: ProjectPhoto?
+    @State private var photoIndex = 0
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                SectionHeading(eyebrow: project.category, title: project.title)
-                Label(project.location, systemImage: "mappin.and.ellipse").foregroundStyle(.secondary)
-                Text(project.scope).lineSpacing(5)
-                Eyebrow(title: project.stage)
-                ForEach(project.photos) { photo in
-                    Button { selectedPhoto = photo } label: {
-                        VStack(alignment: .leading, spacing: 10) {
-                            PortfolioImage(photo: photo, height: 300).clipShape(RoundedRectangle(cornerRadius: 14))
-                            Text(photo.caption).font(.caption).foregroundStyle(.secondary)
-                        }
+            VStack(spacing: 0) {
+                TabView(selection: $photoIndex) {
+                    ForEach(Array(project.photos.enumerated()), id: \.element.id) { index, photo in
+                        Button { selectedPhoto = photo } label: {
+                            PortfolioImage(photo: photo, height: 310)
+                        }.buttonStyle(.plain).tag(index)
+                            .accessibilityHint("Opens full-screen photo gallery")
                     }
-                    .buttonStyle(.plain).accessibilityHint("Opens full-screen photo gallery")
                 }
-                Button { store.startInquiry(service: project.service) } label: {
-                    Label("Plan something like this", systemImage: "arrow.up.right")
-                }.buttonStyle(PrimaryButtonStyle())
-            }.padding(24).frame(maxWidth: 820).frame(maxWidth: .infinity)
+                .frame(height: 310).tabViewStyle(.page(indexDisplayMode: .never))
+                HStack(spacing: 6) {
+                    ForEach(project.photos.indices, id: \.self) { index in
+                        Capsule().fill(index == photoIndex ? Brand.bronze : Brand.line)
+                            .frame(width: index == photoIndex ? 18 : 5, height: 5)
+                    }
+                    Text("\(photoIndex + 1) / \(project.photos.count)")
+                        .font(.caption2).foregroundStyle(Brand.secondary).padding(.leading, 6)
+                }.padding(.top, 14).accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Photo \(photoIndex + 1) of \(project.photos.count)")
+                VStack(alignment: .leading, spacing: 20) {
+                    SectionHeading(eyebrow: project.category, title: project.title)
+                    Text(project.scope).foregroundStyle(Brand.secondary).lineSpacing(5)
+                    Label(project.location, systemImage: "mappin.and.ellipse")
+                    Label(project.stage, systemImage: "square.stack.3d.up")
+                    if project.photos.indices.contains(photoIndex) {
+                        Text(project.photos[photoIndex].caption)
+                            .font(.caption).foregroundStyle(Brand.secondary)
+                    }
+                    Button { store.toggleFavorite(project.id) } label: {
+                        Label(store.favorites.contains(project.id) ? "Saved to My Project" : "Save to My Project",
+                              systemImage: store.favorites.contains(project.id) ? "heart.fill" : "heart")
+                    }.buttonStyle(PrimaryButtonStyle())
+                    Button("Discuss a Similar Project") { store.startInquiry(service: project.service) }
+                        .buttonStyle(SecondaryButtonStyle())
+                }.padding(24)
+            }.frame(maxWidth: 820).frame(maxWidth: .infinity)
         }
         .background(Brand.cream)
-        .navigationTitle("Project details").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Project Gallery").navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
