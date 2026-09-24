@@ -4,76 +4,71 @@ import UIKit
 
 struct PlannerView: View {
     @EnvironmentObject private var store: AppStore
+    @State private var selectedPage = 0
 
     private var savedProjects: [PortfolioProject] {
         (store.catalog?.projects ?? []).filter { store.favorites.contains($0.id) }
     }
+    private var completed: Int { store.completedSteps.intersection(Set(AppStore.planningSteps)).count }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                SectionHeading(eyebrow: "Your next chapter", title: "Make room for what’s next.")
-                Text("A thoughtful home begins with a clear idea. Explore, plan and share only when you are ready.")
-                    .foregroundStyle(.secondary).lineSpacing(4)
-
-                NavigationLink {
-                    ProjectStudioView()
-                } label: {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Label("YOUR PRIVATE PROJECT STUDIO", systemImage: "square.stack.3d.up")
-                            .font(.caption.weight(.semibold)).tracking(1.1).foregroundStyle(Brand.gold)
-                        Text("Bring your vision to life.")
-                            .font(.system(.title, design: .serif)).foregroundStyle(.white)
-                        Text("Gather inspiration, add photos of your space and shape a brief at your own pace. Every question is optional.")
-                            .foregroundStyle(.white.opacity(0.84))
-                        Label("Open Project Studio", systemImage: "arrow.up.right")
-                            .font(.headline).foregroundStyle(Brand.gold)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(24)
-                    .background(Brand.ink, in: RoundedRectangle(cornerRadius: 20))
-                }
-                .buttonStyle(.plain)
-
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("Before we talk").font(.system(.title2, design: .serif))
-                    ProgressView(value: Double(store.completedSteps.intersection(Set(AppStore.planningSteps)).count), total: Double(AppStore.planningSteps.count))
-                        .accessibilityLabel("Planning checklist progress")
-                    ForEach(AppStore.planningSteps, id: \.self) { step in
-                        Button { store.toggleStep(step) } label: {
-                            HStack(alignment: .top, spacing: 12) {
-                                Image(systemName: store.completedSteps.contains(step) ? "checkmark.circle.fill" : "circle")
-                                    .font(.title3).foregroundStyle(Brand.bronze)
-                                Text(step).foregroundStyle(Brand.ink).multilineTextAlignment(.leading)
-                                Spacer(minLength: 0)
-                            }.padding(.vertical, 7)
+                SectionHeading(eyebrow: "A thoughtful beginning", title: "My Project")
+                Picker("My Project section", selection: $selectedPage) {
+                    Text("Checklist").tag(0)
+                    Text("Saved Ideas").tag(1)
+                }.pickerStyle(.segmented)
+                if selectedPage == 0 {
+                    VStack(alignment: .leading, spacing: 20) {
+                        HStack {
+                            Text("Before we talk").font(.headline)
+                            Spacer()
+                            Text("\(completed) of \(AppStore.planningSteps.count)").font(.subheadline).foregroundStyle(Brand.secondary)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityValue(store.completedSteps.contains(step) ? "Completed" : "Not completed")
-                        .accessibilityHint("Double tap to change completion")
-                    }
-                }.padding(22).background(Brand.paper, in: RoundedRectangle(cornerRadius: 18))
-
-                Button { store.startInquiry() } label: {
-                    Label("Start a project inquiry", systemImage: "arrow.up.right")
-                }.buttonStyle(PrimaryButtonStyle())
-                Text("Your initial inquiry stands on its own. The Project Studio is always optional and does not delay contacting LINART.")
-                    .font(.caption).foregroundStyle(.secondary)
-                SectionHeading(eyebrow: "Saved inspiration", title: "A home that feels like you.")
-                if savedProjects.isEmpty {
-                    ContentUnavailableView("Your inspiration starts here", systemImage: "heart", description: Text("Tap the heart on any project to save it for later."))
-                    Button("Explore projects") { store.selectedTab = 1 }.buttonStyle(.bordered)
+                        ProgressView(value: Double(completed), total: Double(AppStore.planningSteps.count))
+                            .tint(Brand.brass).accessibilityLabel("Planning checklist progress")
+                        ForEach(AppStore.planningSteps, id: \.self) { step in
+                            Button { store.toggleStep(step) } label: {
+                                HStack(alignment: .top, spacing: 14) {
+                                    Image(systemName: store.completedSteps.contains(step) ? "checkmark.square.fill" : "square")
+                                        .font(.title2).foregroundStyle(Brand.brass)
+                                    Text(step).foregroundStyle(Brand.ink).multilineTextAlignment(.leading)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Spacer(minLength: 0)
+                                }.frame(minHeight: 44, alignment: .leading)
+                            }.buttonStyle(.plain)
+                                .accessibilityValue(store.completedSteps.contains(step) ? "Completed" : "Not completed")
+                                .accessibilityHint("Double tap to change completion")
+                        }
+                    }.padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Brand.line))
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("“A little preparation leads to a better conversation — and a better result.”")
+                            .font(.system(.title3, design: .serif)).lineSpacing(5)
+                        Text("— The LINART Team").font(.caption).foregroundStyle(Brand.secondary)
+                    }.padding(22).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Brand.gold.opacity(0.18), in: RoundedRectangle(cornerRadius: 12))
+                } else if savedProjects.isEmpty {
+                    ContentUnavailableView("Your inspiration starts here", systemImage: "heart", description: Text("Save the projects you love. You’ll find them here whenever you’re ready."))
+                    Button("Explore Projects") { store.selectedTab = 1 }.buttonStyle(SecondaryButtonStyle())
                 } else {
                     ForEach(savedProjects) { project in
-                        NavigationLink { ProjectDetailView(project: project) } label: { ProjectCard(project: project) }
-                            .buttonStyle(.plain)
+                        NavigationLink { ProjectDetailView(project: project) } label: {
+                            ProjectCard(project: project)
+                        }.buttonStyle(.plain)
                     }
                 }
-                ContactActions()
+                Button { store.studioRequested = true } label: {
+                    MenuRow(title: "Project Studio", subtitle: "Photos, ideas and the details that matter to you", symbol: "square.and.pencil")
+                }.buttonStyle(.plain)
+                Text("Your Studio is optional. Save your ideas privately and share when you’re ready.")
+                    .font(.caption).foregroundStyle(Brand.secondary)
+                Button("Start a Project Inquiry") { store.startInquiry() }.buttonStyle(PrimaryButtonStyle())
             }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
-        }
-        .background(Brand.cream)
-        .navigationTitle("My Project").navigationBarTitleDisplayMode(.inline)
+        }.background(Brand.cream)
+            .navigationTitle("My Project").navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $store.studioRequested) { ProjectStudioView() }
     }
 }
 
@@ -161,7 +156,66 @@ struct StudioDraft: Codable, Equatable {
     }
 }
 
+private enum StudioSection: String, CaseIterable, Identifiable {
+    case space, inspiration, links, details, timing, review
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .space: return "Your Space"
+        case .inspiration: return "Inspiration Photos"
+        case .links: return "Inspiration Links"
+        case .details: return "Project Details"
+        case .timing: return "Budget & Timing"
+        case .review: return "Review & Share"
+        }
+    }
+    var subtitle: String {
+        switch self {
+        case .space: return "Add photos of your home or drawings"
+        case .inspiration: return "Gather the spaces and details you love"
+        case .links: return "Keep ideas from Pinterest, Houzz and more"
+        case .details: return "Your vision, style and priorities"
+        case .timing: return "A starting point for the conversation"
+        case .review: return "Preview your brief and choose how to share"
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .space: return "camera"
+        case .inspiration: return "photo.on.rectangle"
+        case .links: return "link"
+        case .details: return "square.and.pencil"
+        case .timing: return "clock"
+        case .review: return "doc.text.magnifyingglass"
+        }
+    }
+}
+
 struct ProjectStudioView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                SectionHeading(eyebrow: "Your vision, beautifully organized", title: "Project Studio")
+                Text("Add the details that make it yours. Everything here is optional, and you can return anytime.")
+                    .foregroundStyle(Brand.secondary).lineSpacing(4)
+                VStack(spacing: 12) {
+                    ForEach(StudioSection.allCases) { section in
+                        NavigationLink { StudioEditorView(section: section) } label: {
+                            MenuRow(title: section.title, subtitle: section.subtitle, symbol: section.symbol)
+                        }.buttonStyle(.plain)
+                    }
+                }
+                Label("Saved privately on this device until you choose to share.", systemImage: "lock.shield")
+                    .font(.caption).foregroundStyle(Brand.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+        }.background(Brand.cream)
+            .navigationTitle("Project Studio").navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct StudioEditorView: View {
+    let section: StudioSection
     @State private var draft = StudioDraft.load()
     @State private var pickedPhotos: [PhotosPickerItem] = []
     @State private var newReference = ""
@@ -174,6 +228,11 @@ struct ProjectStudioView: View {
     @State private var showReview = false
     @State private var confirmClear = false
     @State private var importing = false
+
+    init(section: StudioSection) {
+        self.section = section
+        _photoPurpose = State(initialValue: section == .inspiration ? "Inspiration" : "Existing space")
+    }
 
     private let types = ["Existing space", "Inspiration", "Plans or drawings"]
     private let services = Inquiry.serviceOptions
@@ -201,85 +260,100 @@ struct ProjectStudioView: View {
             Section {
                 VStack(alignment: .leading, spacing: 9) {
                     Eyebrow(title: "An invitation to imagine")
-                    Text("Your vision, beautifully organized.").font(.system(.title, design: .serif))
-                    Text("Add as much or as little as you wish. Your initial inquiry is already separate from this studio.")
+                    Text(section.title).font(.system(.title, design: .serif))
+                    Text(section.subtitle)
                         .font(.subheadline).foregroundStyle(.secondary)
                     HStack {
                         Text("\(progress) of 7 planning topics explored").font(.caption).foregroundStyle(.secondary)
-                        Spacer()
-                        Text("No required questions").font(.caption).foregroundStyle(Brand.bronze)
                     }
                     ProgressView(value: Double(progress), total: 7).tint(Brand.bronze)
                     Label("Private on this device until you choose to share", systemImage: "lock.shield")
                         .font(.caption).foregroundStyle(Brand.bronze)
                 }.padding(.vertical, 7)
             }
-            Section("Your starting point · optional") {
-                TextField("Email used for your inquiry (optional)", text: $draft.inquiryEmail)
-                    .keyboardType(.emailAddress).textContentType(.emailAddress)
-                    .textInputAutocapitalization(.never).autocorrectionDisabled()
-                Picker("Project type", selection: $draft.projectType) {
-                    Text("Not decided").tag("")
-                    ForEach(services, id: \.self) { Text($0).tag($0) }
+            if section == .details {
+                Section("Your starting point · optional") {
+                    TextField("Email used for your inquiry (optional)", text: $draft.inquiryEmail)
+                        .keyboardType(.emailAddress).textContentType(.emailAddress)
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    Picker("Project type", selection: $draft.projectType) {
+                        Text("Not decided").tag("")
+                        ForEach(services, id: \.self) { Text($0).tag($0) }
+                    }
+                    studioField(tailoredPrompt, text: $draft.goals)
+                    studioField("What does the space look like today?", text: $draft.existingConditions)
                 }
-                studioField(tailoredPrompt, text: $draft.goals)
-                studioField("What does the space look like today?", text: $draft.existingConditions)
             }
-            Section {
-                Picker("Photos you are adding", selection: $photoPurpose) {
-                    ForEach(types, id: \.self) { Text($0).tag($0) }
-                }
-                PhotosPicker(selection: $pickedPhotos, maxSelectionCount: max(1, 8 - draft.photos.count), matching: .images) {
-                    Label(importing ? "Adding photos…" : "Add photos from your device", systemImage: "photo.on.rectangle.angled")
-                }
-                .disabled(importing || draft.photos.count >= 8)
-                Text("Up to 8 photos. Choose pictures of your space, saved inspiration images or drawings. You control what gets shared.")
-                    .font(.caption).foregroundStyle(.secondary)
-                ForEach($draft.photos) { $photo in
-                    HStack(alignment: .top, spacing: 12) {
-                        if let image = UIImage(contentsOfFile: StudioDraft.directory.appendingPathComponent(photo.filename).path) {
-                            Image(uiImage: image).resizable().scaledToFill()
-                                .frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: 9))
-                                .accessibilityLabel(photo.purpose)
+            if section == .space || section == .inspiration {
+                Section {
+                    Picker("Photos you are adding", selection: $photoPurpose) {
+                        ForEach(types, id: \.self) { Text($0).tag($0) }
+                    }
+                    PhotosPicker(selection: $pickedPhotos, maxSelectionCount: max(1, 8 - draft.photos.count), matching: .images) {
+                        Label(importing ? "Adding photos…" : "Add photos from your device", systemImage: "photo.on.rectangle.angled")
+                    }
+                    .disabled(importing || draft.photos.count >= 8)
+                    Text("Up to 8 photos. Choose pictures of your space, saved inspiration images or drawings. You control what gets shared.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    ForEach($draft.photos) { $photo in
+                        HStack(alignment: .top, spacing: 12) {
+                            if let image = UIImage(contentsOfFile: StudioDraft.directory.appendingPathComponent(photo.filename).path) {
+                                Image(uiImage: image).resizable().scaledToFill()
+                                    .frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: 9))
+                                    .accessibilityLabel(photo.purpose)
+                            }
+                            VStack(alignment: .leading, spacing: 7) {
+                                Text(photo.purpose).font(.subheadline.weight(.semibold))
+                                TextField("What should LINART notice? (optional)", text: $photo.note, axis: .vertical)
+                                    .lineLimit(1...3)
+                            }
+                            Spacer(minLength: 0)
+                            Button(role: .destructive) { removePhoto(photo) } label: {
+                                Image(systemName: "trash").accessibilityLabel("Remove photo")
+                            }
                         }
+                    }
+                } header: { Text("Your spaces & inspiration") }
+            }
+            if section == .links {
+                Section("Ideas from the internet · optional") {
+                    TextField("https://example.com/inspiration", text: $newReference)
+                        .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    TextField("What appeals to you about this example?", text: $newReferenceNote, axis: .vertical)
+                        .lineLimit(2...4)
+                    Button("Add inspiration link", systemImage: "link.badge.plus") { addReference() }
+                        .disabled(draft.references.count >= 10 || newReference.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    Text("Paste a web link from Pinterest, Houzz or another site. LINART receives the link, not a copy of the website image.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    ForEach(draft.references) { item in
                         VStack(alignment: .leading, spacing: 7) {
-                            Text(photo.purpose).font(.subheadline.weight(.semibold))
-                            TextField("What should LINART notice? (optional)", text: $photo.note, axis: .vertical)
-                                .lineLimit(1...3)
+                            Text(item.url).font(.footnote).foregroundStyle(Brand.bronze).textSelection(.enabled)
+                            if !item.note.isEmpty { Text(item.note).font(.subheadline) }
+                            Button("Remove link", role: .destructive) {
+                                draft.references.removeAll { $0.id == item.id }
+                            }.font(.caption)
                         }
-                        Spacer(minLength: 0)
-                        Button(role: .destructive) { removePhoto(photo) } label: {
-                            Image(systemName: "trash").accessibilityLabel("Remove photo")
-                        }
-                    }
-                }
-            } header: { Text("Your spaces & inspiration") }
-            Section("Ideas from the internet · optional") {
-                TextField("https://example.com/inspiration", text: $newReference)
-                    .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                TextField("What appeals to you about this example?", text: $newReferenceNote, axis: .vertical)
-                    .lineLimit(2...4)
-                Button("Add inspiration link", systemImage: "link.badge.plus") { addReference() }
-                    .disabled(draft.references.count >= 10 || newReference.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                Text("Paste a web link from Pinterest, Houzz or another site. LINART receives the link, not a copy of the website image.")
-                    .font(.caption).foregroundStyle(.secondary)
-                ForEach(draft.references) { item in
-                    VStack(alignment: .leading, spacing: 7) {
-                        Text(item.url).font(.footnote).foregroundStyle(Brand.bronze).textSelection(.enabled)
-                        if !item.note.isEmpty { Text(item.note).font(.subheadline) }
-                        Button("Remove link", role: .destructive) {
-                            draft.references.removeAll { $0.id == item.id }
-                        }.font(.caption)
                     }
                 }
             }
-            Section("Considered details · all optional") {
-                studioField("Style, finishes or materials you like", text: $draft.style)
-                studioField("What matters most to you?", text: $draft.priorities)
-                studioField("Investment range or budget considerations", text: $draft.investment)
-                studioField("Ideal project timing", text: $draft.timeline)
-                studioField("Existing plans, constraints or site access", text: $draft.constraints)
-                studioField("Anything else we should know?", text: $draft.other)
+            if section == .details {
+                Section("Considered details · all optional") {
+                    studioField("Style, finishes or materials you like", text: $draft.style)
+                    studioField("What matters most to you?", text: $draft.priorities)
+                    studioField("Existing plans, constraints or site access", text: $draft.constraints)
+                    studioField("Anything else we should know?", text: $draft.other)
+                }
+            }
+            if section == .timing {
+                Section("Looking ahead · optional") {
+                    studioField("Investment range or budget considerations", text: $draft.investment)
+                    studioField("Ideal project timing", text: $draft.timeline)
+                }
+            }
+            if section == .review {
+                Section("Your project brief") {
+                    Text(draft.brief).font(.subheadline).textSelection(.enabled)
+                }
             }
             Section {
                 Button("Review your project brief", systemImage: "doc.text.magnifyingglass") {
@@ -296,8 +370,9 @@ struct ProjectStudioView: View {
                 }
             }
         }
-        .navigationTitle("Project Studio")
+        .navigationTitle(section.title)
         .navigationBarTitleDisplayMode(.inline)
+        .scrollDismissesKeyboard(.interactively)
         .scrollContentBackground(.hidden)
         .background(Brand.cream)
         .onChange(of: draft) { _, _ in

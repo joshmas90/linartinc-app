@@ -13,7 +13,9 @@ There are no third-party runtime packages, API keys, project generators or packa
 
 ## Features
 
-- Native Home, Projects, My Project and About tabs.
+- Native Home, Projects, Services, My Project and More tabs.
+- Reference-inspired ivory/brass styling, responsive native hero text, portfolio category filters, image-first galleries and service pages.
+- A Project Studio menu with focused photo, inspiration, project-detail, budget/timing and review screens.
 - Searchable portfolio with full-screen, swipeable photo galleries.
 - Saved projects and a preparation checklist persisted on the device.
 - Optional private Project Studio: guided prompts, up to eight device-selected photos, up to ten inspiration URLs, on-device draft storage and a reviewable photo-inclusive PDF export.
@@ -35,6 +37,10 @@ The Studio does not transmit photos or notes to the website server automatically
 
 The Studio code was added after the original static audit report. Its photos, local persistence, PDF export and optional post-inquiry invitation have **not** been compiled or device-tested. The original verification PASS in Documentation/VERIFICATION.json applies only to the pre-Studio revision. See Documentation/PROJECT-STUDIO-IMPLEMENTATION.md for outstanding backend and release requirements.
 
+## September 24 visual revision
+
+The reference-inspired app redesign and clipped-hero fix are documented in `Documentation/PREMIUM-REFERENCE-REVISION.md`. Syntax and package checks were performed on Linux; this revision still needs an Xcode compile and on-device visual review. No automatic build or Apple upload was started.
+
 ## Verification status
 
 Read `Documentation/AUDIT.md` and `Documentation/VERIFICATION.json` for the performed checks and their limits. The project was assembled and statically audited on Windows. **No Xcode build, simulator run, XCTest execution, signing, TestFlight upload or App Store submission was initiated.** The included XCTest cases use a mock URL protocol and do not send live inquiries; they are available for a later authorized Xcode test run.
@@ -49,6 +55,6 @@ Read `Documentation/AUDIT.md` and `Documentation/VERIFICATION.json` for the perf
 
 ## Provenance
 
-The previous iOS ZIP could not be recovered from the accessible conversation or local files, and the app repository was empty when inspected. This is a new implementation, not an audited copy of the previous ZIP. Business content and images were recovered from `joshmas90/linartinc` at commit `45ee6b05b0148a226f7a97717df6aa25a35d5c29`. See `Documentation/AssetSources.json` for original image paths and hashes. The website's editorial homepage hero is retained as branding imagery and is not identified as a separately verified completed project.
+The previous iOS ZIP could not be recovered from the accessible conversation or local files, and the app repository was empty when inspected. This is a new implementation, not an audited copy of the previous ZIP. Business content and images were recovered from `joshmas90/linartinc` at commit `45ee6b05b0148a226f7a97717df6aa25a35d5c29`. See `Documentation/AssetSources.json` for original image paths and hashes. The original website banner remains bundled for provenance but is no longer displayed by the homepage. The app uses the existing kitchen-remodeling photograph with native, wrapping text and a working button.
 
 `Scripts/verify_package.py` performs read-only structural checks and can also compare an extracted source directory with a ZIP. It uses Python 3.10+ and does not invoke Xcode or start a build.

@@ -1,5 +1,97 @@
 import SwiftUI
 
+struct MoreView: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                VStack(spacing: 18) {
+                    Image("linart-residence-hero").resizable().scaledToFill()
+                        .frame(width: 116, height: 116).clipShape(Circle())
+                        .overlay(Circle().strokeBorder(Brand.gold, lineWidth: 2))
+                        .accessibilityHidden(true)
+                    BrandWordmark()
+                }.padding(.vertical, 20)
+                VStack(spacing: 10) {
+                    NavigationLink { AboutView() } label: {
+                        MenuRow(title: "About Us", subtitle: "The family behind the craftsmanship", symbol: "house")
+                    }
+                    NavigationLink { ContactView() } label: {
+                        MenuRow(title: "Contact Us", subtitle: "Let’s talk about your home", symbol: "bubble.left.and.bubble.right")
+                    }
+                    NavigationLink { ServiceAreasView() } label: {
+                        MenuRow(title: "Service Areas", subtitle: "At home in New Jersey", symbol: "map")
+                    }
+                    ShareLink(item: Company.website) {
+                        MenuRow(title: "Share LINART", subtitle: "Introduce someone to our work", symbol: "square.and.arrow.up")
+                    }
+                    NavigationLink { PrivacyView() } label: {
+                        MenuRow(title: "Privacy", subtitle: "Your information, thoughtfully handled", symbol: "hand.raised")
+                    }
+                    NavigationLink { SettingsView() } label: {
+                        MenuRow(title: "Settings", subtitle: "App information and saved data", symbol: "gearshape")
+                    }
+                }.buttonStyle(.plain)
+                VStack(spacing: 16) {
+                    Text("Building Better\nLives at Home")
+                        .font(.system(.title2, design: .serif)).italic().multilineTextAlignment(.center)
+                    Rectangle().fill(Brand.brass).frame(width: 44, height: 1)
+                }.frame(maxWidth: .infinity).padding(28)
+                    .background(Brand.line.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
+            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+        }.background(Brand.cream)
+            .navigationTitle("More").navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct ContactView: View {
+    @EnvironmentObject private var store: AppStore
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
+                SectionHeading(eyebrow: "A considered beginning", title: "Tell us what you have in mind.")
+                Text("A new home, a little more room, or a space that works better for you. We’d love to hear about it.")
+                    .foregroundStyle(Brand.secondary).lineSpacing(5)
+                Button("Start a Project Inquiry") { store.startInquiry() }.buttonStyle(PrimaryButtonStyle())
+                ContactActions()
+            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+        }.background(Brand.cream)
+            .navigationTitle("Contact Us").navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct SettingsView: View {
+    @EnvironmentObject private var store: AppStore
+    @State private var confirmReset = false
+    @State private var resetError: String?
+
+    var body: some View {
+        List {
+            Section("LINART") {
+                LabeledContent("Version", value: (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "1.0")
+                LabeledContent("Build", value: (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "1")
+            }
+            Section {
+                Button("Clear all local app data", role: .destructive) { confirmReset = true }
+            } header: { Text("Saved on this device") } footer: {
+                Text("Removes saved ideas, checklist progress, the inquiry draft and private Studio photos and notes. Inquiries already sent to LINART are unaffected.")
+            }
+        }.scrollContentBackground(.hidden).background(Brand.cream)
+            .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
+            .confirmationDialog("Clear data saved in this app?", isPresented: $confirmReset, titleVisibility: .visible) {
+                Button("Clear local data", role: .destructive) {
+                    do {
+                        try StudioDraft.clear()
+                        store.clearLocalData()
+                    } catch { resetError = "Your saved files could not be cleared. Please try again." }
+                }
+            }
+            .alert("Unable to clear data", isPresented: Binding(get: { resetError != nil }, set: { if !$0 { resetError = nil } })) {
+                Button("OK", role: .cancel) { resetError = nil }
+            } message: { Text(resetError ?? "") }
+    }
+}
+
 struct AboutView: View {
     @EnvironmentObject private var store: AppStore
     @State private var confirmReset = false
@@ -75,9 +167,9 @@ struct PrivacyView: View {
     var body: some View {
         List {
             Section("On your device") {
-                Text("Saved project identifiers and checklist progress are stored in the app’s local preferences and may be included in your device backups. Use Clear saved projects and checklist in About to remove them.")
+                Text("Saved project identifiers and checklist progress are stored in the app’s local preferences and may be included in your device backups. Use Clear all local app data in More → Settings to remove them.")
                 Text("Inquiry drafts are kept in memory, not deliberately saved to disk by the app. They are cleared after a successful submission, when you choose Clear, or when the app process ends.")
-                Text("Your optional Project Studio draft, inspiration links, notes and imported photo copies are stored on this device in protected app files. They may be included in device backups. Clear your studio from its screen, or clear all local data in About. Removing the app also removes its app data.")
+                Text("Your optional Project Studio draft, inspiration links, notes and imported photo copies are stored on this device in protected app files. They may be included in device backups. Clear your studio from its screen, or clear all local data in More → Settings. Removing the app also removes its app data.")
             }
             Section("When you send an inquiry") {
                 Text("The form sends your name, email, phone number, project city or ZIP, selected service, timing, preferred contact method and optional project description over HTTPS to linartinc.com/contact.php.")

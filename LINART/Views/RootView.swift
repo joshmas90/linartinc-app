@@ -9,10 +9,12 @@ struct RootView: View {
                 .tabItem { Label("Home", systemImage: "house") }.tag(0)
             NavigationStack { ProjectsView() }
                 .tabItem { Label("Projects", systemImage: "square.grid.2x2") }.tag(1)
+            NavigationStack { ServicesView() }
+                .tabItem { Label("Services", systemImage: "hammer") }.tag(4)
             NavigationStack { PlannerView() }
                 .tabItem { Label("My Project", systemImage: "square.and.pencil") }.tag(2)
-            NavigationStack { AboutView() }
-                .tabItem { Label("About", systemImage: "building.2") }.tag(3)
+            NavigationStack { MoreView() }
+                .tabItem { Label("More", systemImage: "line.3.horizontal") }.tag(3)
         }
         .sheet(isPresented: $store.inquiryPresented) {
             NavigationStack { InquiryView() }
