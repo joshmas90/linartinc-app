@@ -74,3 +74,90 @@ workflows:
       - build/simulators.json
       - build/xcodebuild.log
       - build/TestResults.xcresult.zip
+  linart-app-store-upload:
+    name: LINART - Upload to App Store Connect (manual)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    integrations:
+      app_store_connect: Codemagic CI
+    environment:
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.linartinc.LINART
+      vars:
+        XCODE_PROJECT: LINART.xcodeproj
+        XCODE_SCHEME: LINART
+        EXPECTED_BUNDLE_ID: com.linartinc.LINART
+        EXPECTED_APPLE_TEAM_ID: RWPXN4U543
+    scripts:
+      - name: Check LINART release configuration
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          test -f "$XCODE_PROJECT/project.pbxproj"
+          test -f "$XCODE_PROJECT/xcshareddata/xcschemes/$XCODE_SCHEME.xcscheme"
+          plutil -lint "$XCODE_PROJECT/project.pbxproj"
+          plutil -lint LINART/Resources/Info.plist
+          plutil -lint LINART/Resources/PrivacyInfo.xcprivacy
+          [[ "${PROJECT_BUILD_NUMBER:?Codemagic project build number is missing}" =~ ^[1-9][0-9]*$ ]]
+          xcodebuild -version
+      - name: Apply the LINART App Store signing profile
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          xcode-project use-profiles
+      - name: Archive and export the signed LINART app
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --config Release \
+            --ipa-directory build/ios/unverified \
+            --archive-xcargs "CURRENT_PROJECT_VERSION=$PROJECT_BUILD_NUMBER"
+      - name: Verify the app identity before Apple upload
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import plistlib
+          import subprocess
+          import zipfile
+          from pathlib import Path
+
+          packages = list(Path("build/ios/unverified").glob("*.ipa"))
+          if len(packages) != 1:
+              raise SystemExit("Expected exactly one signed IPA.")
+          with zipfile.ZipFile(packages[0]) as package:
+              info_files = [name for name in package.namelist() if name.startswith("Payload/") and name.endswith(".app/Info.plist") and name.count("/") == 2]
+              if len(info_files) != 1:
+                  raise SystemExit("The IPA must contain exactly one application.")
+              info = plistlib.loads(package.read(info_files[0]))
+          if info.get("CFBundleIdentifier") != os.environ["EXPECTED_BUNDLE_ID"]:
+              raise SystemExit("IPA bundle identifier does not match LINART.")
+          if str(info.get("CFBundleVersion")) != os.environ["PROJECT_BUILD_NUMBER"]:
+              raise SystemExit("IPA build number does not match this Codemagic run.")
+          applications = list(Path("build/ios/xcarchive").glob("*.xcarchive/Products/Applications/LINART.app"))
+          if len(applications) != 1:
+              raise SystemExit("Expected exactly one archived LINART application.")
+          subprocess.run(["codesign", "--verify", "--strict", str(applications[0])], check=True)
+          signature = subprocess.run(["codesign", "-dv", "--verbose=4", str(applications[0])], capture_output=True, text=True, check=True)
+          if f"TeamIdentifier={os.environ['EXPECTED_APPLE_TEAM_ID']}" not in signature.stderr.splitlines():
+              raise SystemExit("Signing team does not match LINART's Apple account.")
+          verified_directory = Path("build/ios/ipa")
+          verified_directory.mkdir(parents=True, exist_ok=True)
+          packages[0].replace(verified_directory / packages[0].name)
+          print(f"Verified {info['CFBundleIdentifier']} build {info['CFBundleVersion']} for Apple upload.")
+          PY
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - build/ios/xcarchive/*.xcarchive/dSYMs/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
+        submit_to_app_store: false
