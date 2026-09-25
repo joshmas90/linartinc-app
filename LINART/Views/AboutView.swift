@@ -142,16 +142,28 @@ struct AboutView: View {
                 Text("New custom homes. Thoughtful additions. Carefully finished renovations.")
                     .font(.system(.title2, design: .serif))
                 NavigationLink { ServiceAreasView() } label: {
-                    Label("Explore our service area", systemImage: "map").frame(maxWidth: .infinity, alignment: .leading)
-                }.buttonStyle(.bordered)
+                    Label("Explore our service area", systemImage: "map")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(SecondaryButtonStyle())
                 ContactActions()
                 Button { store.startInquiry() } label: {
                     Label("Start a conversation", systemImage: "arrow.up.right")
                 }.buttonStyle(PrimaryButtonStyle())
-                Link(destination: Company.website) { Label("Visit linartinc.com", systemImage: "safari") }
-                Divider()
-                NavigationLink("Privacy & app information") { PrivacyView() }
-                NavigationLink("Manage saved app data") { SettingsView() }
+                Link(destination: Company.website) {
+                    Label("Visit linartinc.com", systemImage: "safari")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(TertiaryButtonStyle())
+                Divider().overlay(Brand.line)
+                NavigationLink { PrivacyView() } label: {
+                    MenuRow(title: "Privacy & app information", subtitle: "How information is handled", symbol: "hand.raised")
+                }
+                .buttonStyle(.plain)
+                NavigationLink { SettingsView() } label: {
+                    MenuRow(title: "Manage saved app data", subtitle: "Settings, diagnostics and local data", symbol: "gearshape")
+                }
+                .buttonStyle(.plain)
                 Text("LINART · Version \(version)")
                     .font(.caption).foregroundStyle(.secondary)
             }
