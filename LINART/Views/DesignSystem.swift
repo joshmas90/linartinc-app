@@ -64,47 +64,57 @@ struct SectionHeading: View {
 
 struct PrimaryButtonStyle: ButtonStyle {
     var light = false
+    @Environment(\.isEnabled) private var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
             .frame(maxWidth: .infinity, minHeight: 24)
             .padding(.horizontal, 20).padding(.vertical, 15)
-            .foregroundStyle(.white)
-            .background(light ? Brand.paper.opacity(0.14) : Brand.ink, in: RoundedRectangle(cornerRadius: 11))
+            .foregroundStyle(isEnabled ? Color.white : Brand.secondary.opacity(0.72))
+            .background(
+                isEnabled ? (light ? Brand.paper.opacity(0.14) : Brand.ink) : Brand.line.opacity(0.62),
+                in: RoundedRectangle(cornerRadius: 11)
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: 11)
-                    .strokeBorder(light ? Brand.gold.opacity(0.55) : Brand.brass.opacity(0.48))
+                    .strokeBorder(isEnabled ? (light ? Brand.gold.opacity(0.55) : Brand.brass.opacity(0.48)) : Brand.line)
             )
-            .shadow(color: .black.opacity(configuration.isPressed ? 0.03 : 0.08), radius: 10, y: 5)
-            .scaleEffect(configuration.isPressed ? 0.992 : 1)
-            .opacity(configuration.isPressed ? 0.88 : 1)
+            .shadow(color: isEnabled ? .black.opacity(configuration.isPressed ? 0.03 : 0.08) : .clear, radius: 10, y: 5)
+            .scaleEffect(configuration.isPressed && isEnabled ? 0.992 : 1)
+            .opacity(configuration.isPressed && isEnabled ? 0.88 : 1)
             .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.16), value: isEnabled)
     }
 }
 
 struct SecondaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
             .frame(maxWidth: .infinity, minHeight: 24)
             .padding(.horizontal, 20).padding(.vertical, 14)
-            .foregroundStyle(Brand.ink)
-            .background(configuration.isPressed ? Brand.gold.opacity(0.12) : Brand.paper, in: RoundedRectangle(cornerRadius: 11))
-            .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Brand.line))
-            .opacity(configuration.isPressed ? 0.78 : 1)
+            .foregroundStyle(isEnabled ? Brand.ink : Brand.secondary.opacity(0.65))
+            .background(configuration.isPressed && isEnabled ? Brand.gold.opacity(0.12) : Brand.paper, in: RoundedRectangle(cornerRadius: 11))
+            .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(isEnabled ? Brand.line : Brand.line.opacity(0.65)))
+            .opacity(configuration.isPressed && isEnabled ? 0.78 : 1)
             .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.14), value: isEnabled)
     }
 }
 
 struct TertiaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(Brand.bronze)
+            .foregroundStyle(isEnabled ? Brand.bronze : Brand.secondary.opacity(0.6))
             .frame(minHeight: 44)
             .contentShape(Rectangle())
-            .opacity(configuration.isPressed ? 0.58 : 1)
+            .opacity(configuration.isPressed && isEnabled ? 0.58 : 1)
     }
 }
 
@@ -181,6 +191,8 @@ struct ProjectCard: View {
         }
         .background(Brand.ink)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.white.opacity(0.12)))
+        .shadow(color: .black.opacity(0.07), radius: 12, y: 6)
         .contentShape(RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .combine)
     }
@@ -191,27 +203,69 @@ struct ContactActions: View {
     @State private var unavailable: String?
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: PremiumLayout.sm) {
             Button {
                 openURL(Company.phoneURL) { accepted in
                     if !accepted { unavailable = "Call LINART at \(Company.phone) from a phone." }
                 }
             } label: {
-                Label(Company.phone, systemImage: "phone").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                ContactActionRow(eyebrow: "Call", title: Company.phone, symbol: "phone")
             }
             Button {
                 openURL(Company.emailURL) { accepted in
                     if !accepted { unavailable = "Email \(Company.email) using your preferred email app." }
                 }
             } label: {
-                Label(Company.email, systemImage: "envelope").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                ContactActionRow(eyebrow: "Email", title: Company.email, symbol: "envelope")
             }
         }
-        .font(.body).buttonStyle(.bordered).tint(Brand.bronze)
+        .buttonStyle(.plain)
         .alert("Contact LINART", isPresented: Binding(
             get: { unavailable != nil }, set: { if !$0 { unavailable = nil } }
         )) {
             Button("OK", role: .cancel) { unavailable = nil }
         } message: { Text(unavailable ?? "") }
+    }
+}
+
+private struct ContactActionRow: View {
+    let eyebrow: String
+    let title: String
+    let symbol: String
+
+    var body: some View {
+        HStack(spacing: PremiumLayout.sm) {
+            ZStack {
+                Circle().fill(Brand.gold.opacity(0.18))
+                Image(systemName: symbol)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(Brand.bronze)
+            }
+            .frame(width: 40, height: 40)
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(eyebrow.uppercased())
+                    .font(.caption2.weight(.semibold))
+                    .tracking(1.1)
+                    .foregroundStyle(Brand.secondary)
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Brand.ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.82)
+            }
+            Spacer(minLength: PremiumLayout.xs)
+            Image(systemName: "arrow.up.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Brand.bronze)
+                .accessibilityHidden(true)
+        }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, minHeight: 66, alignment: .leading)
+        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Brand.line))
+        .contentShape(RoundedRectangle(cornerRadius: 14))
+        .accessibilityElement(children: .combine)
     }
 }
