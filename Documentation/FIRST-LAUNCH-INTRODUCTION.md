@@ -1,21 +1,33 @@
-# LINART first-launch introduction
+# LINART app-launch introduction
 
 ## Experience
 
-A warm ivory introduction uses the bundled `kitchen-remodeling` photograph, a native serif LINART wordmark, restrained brass rules, and the approved copy: “Crafted around you” and “Your home. Beautifully reimagined.” No generated project imagery is shipped. The system launch background now matches the introduction's ivory.
+A warm ivory introduction uses the dedicated `welcome-bathroom` artwork, a native serif LINART wordmark, restrained brass rules, and the approved copy: “Crafted around you” and “Your home. Beautifully reimagined.” The owner requested this AI-generated concept based on six supplied bathroom reference photos, followed by a neutral-white-balance and fixture-detail refinement. It is decorative splash artwork, not a documented portfolio project. See `SPLASH-ARTWORK.md` for provenance and the final edit prompt. The system launch background matches the introduction's ivory.
 
-The wordmark fades in and the photo gently settles over 0.8 seconds. After three uninterrupted seconds in the foreground, the screen crossfades into Home over 0.4 seconds. Skip is available immediately with a minimum 44-point target. Reduce Motion removes the reveal and dismissal animations. VoiceOver and accessibility text sizes use a persistent Continue button instead of timed dismissal.
+Five effects share one restrained sequence:
 
-Text is rendered natively and wraps; only the photograph crops. Portrait uses a vertical editorial composition. Landscape uses a split composition when space allows, with a scrollable text panel. Large accessibility text uses the scrollable vertical layout. The bottom control stays outside the scrolling content and within safe areas.
+| Effect | Timing from appearance |
+| --- | --- |
+| Staggered typography | LINART: 0–0.55 s; tagline: 0.18–0.73 s; headline: 1.45–2.00 s; location: 1.70–2.15 s |
+| Architectural reveal | Brass rule draws from its center at 0.28–0.73 s; a broad feathered photo reveal travels downward at 0.25–1.45 s |
+| Cinematic photograph | Slow pullback from 1.055 to 1.000 scale at 0.25–2.20 s, with a three-point soft-focus/opacity transition resolving at 1.25 s |
+| Brass light sweep | One masked highlight crosses only the LINART letters at 0.90–1.95 s |
+| Entrance into the app | The finished composition holds still at 2.20–3.00 s, then dissolves into the mounted app at 3.00–3.65 s |
 
-## Persistence and lifecycle
+Skip is available immediately with a minimum 44-point target and also uses the short dissolve. Reduce Motion removes all animation. VoiceOver and accessibility text sizes show the complete static content and a Continue button instead of timed dismissal.
 
-- `linart.hasSeenBrandIntroduction` is stored through AppStorage in local preferences, and set only when the introduction finishes or is skipped.
-- The key is deliberately not tied to an app version. Once completed, reopening, tab navigation, foregrounding and app updates do not replay it.
-- Existing installations see it once when they first install this revision. New installations see it at first opening. Restoring backed-up app preferences can also restore completion.
-- If the app closes before completion, the next launch still offers the introduction. Backgrounding cancels the timer; returning starts a fresh three seconds rather than dismissing unseen content.
-- Clearing saved projects/Studio data does not reset the introduction flag. No existing draft, favorite, checklist or inquiry data is changed.
-- Home stays mounted behind the introduction, with hit testing and accessibility hidden until dismissal. The photo is bundled; no network request, permission or additional dependency is required.
+The photo entrance uses a broad alpha feather. A restrained focus transition and eased camera pullback let the room resolve gradually. The feather completes before the headline begins appearing; the final artwork is sharp, opaque and stationary for about 0.8 seconds before dismissal. The final scale is 1.0 so the complete composition is visible during the hold.
+
+Text is rendered natively and wraps. The artwork stays in a square frame with ivory margins, up to 560 points across. Portrait reserves room for the wordmark and message on smaller phones; landscape uses a split composition with a scrollable text panel. Only the gentle opening zoom trims the image edges. Large accessibility text uses the scrollable vertical layout. The bottom control stays outside the scrolling content and within safe areas. Home retains its separate kitchen photograph, and portfolio/catalog imagery is unchanged.
+
+## Launch behavior
+
+- The welcome appears on every fresh app launch, including after the user fully closes and reopens the app. The prior installation-wide completion preference is no longer read or written.
+- Dismissal is kept in memory at the app root, outside the tab/navigation hierarchy. Page changes, tab changes, system dialogs and ordinary background/foreground transitions do not replay a completed welcome.
+- If iOS terminates the process while it is in the background, the next opening is a fresh launch and shows the welcome. Suspended-process resumption does not.
+- Backgrounding during an unfinished welcome cancels its dismissal timer. Returning gives a fresh reading interval for that same welcome; it does not restart the effects or create another screen.
+- More → Settings → Replay welcome explicitly starts the sequence on Home without reinstalling or clearing data. It does not change the ordinary launch rule.
+- The current screen stays mounted behind the introduction, with hit testing and accessibility hidden until dismissal. No draft, favorite, checklist or inquiry data is changed. The photo is bundled; no network request, permission or additional dependency is required.
 
 ## Verification
 
@@ -23,17 +35,18 @@ Performed on Linux for this revision:
 
 - All 16 Swift source files parsed with the tree-sitter Swift grammar without syntax errors. This is not SwiftUI type checking.
 - Existing package verifier: Xcode source/resource membership and object references, shared scheme, assets, catalog, property lists, privacy manifest and refreshed SHA-256 manifest.
-- Whitespace/diff check and source review of completion persistence, cancellation, accessibility and the immediate Skip path.
+- Whitespace/diff check and source review of per-launch state, cancellation, accessibility and the immediate Skip/replay paths.
 
 Xcode compilation, XCTest, simulator rendering and physical-device visual verification remain outstanding. No Codemagic build or Apple upload was started for this change.
 
 ## On-device acceptance
 
-1. On a fresh simulator install, verify the ivory introduction, real photo and fully visible text; let it finish, then force-close and reopen. It should open directly to Home.
-2. On a separate fresh simulator install, tap Skip immediately, navigate through all tabs, and relaunch. It must not replay or leave an invisible touch-blocking layer.
-3. Background during the introduction and return; confirm it provides a new reading interval. Close before completion and confirm it appears again.
-4. Check a small iPhone, a large iPhone and iPad, portrait and landscape, offline, with the largest text sizes. Verify scrolling and the always-visible bottom control.
+1. Launch, let the welcome finish, fully close the app and relaunch. The sequence must play again without reinstalling or clearing preferences.
+2. Tap Skip immediately, navigate through all tabs and nested pages, background the app and return. It must not replay a completed welcome or leave an invisible touch-blocking layer.
+3. Background during an unfinished welcome and return; confirm it provides a fresh reading interval for the existing screen. Close the app fully and reopen to see a new sequence.
+4. Check a small iPhone, a large iPhone and iPad, portrait and landscape, offline, with the largest text sizes. Verify the complete square artwork, the still hold before dismissal, scrolling and the always-visible bottom control.
 5. Enable Reduce Motion before launching: no zoom or fading. Enable VoiceOver or accessibility text: the screen waits for Continue, and Home controls cannot be reached behind it.
-6. Upgrade an installation containing favorites and a Studio draft; verify the introduction appears once and the saved content remains intact.
+6. Use More → Settings → Replay welcome repeatedly, including immediately after Skip. Confirm the whole sequence restarts, and no old timer dismisses a newer replay.
+7. Upgrade an installation containing favorites and a Studio draft; verify saved content remains intact. The old first-install completion flag must not suppress the welcome.
 
-Use a simulator reset or a dedicated test installation for repeat checks; do not delete an installation containing unsaved customer work just to replay the introduction.
+Earlier interactive conversation previews use the previous photograph and timing; they are not recordings of the native iPhone app. The current implementation and timing table above describe this revision. Codemagic remains manual.

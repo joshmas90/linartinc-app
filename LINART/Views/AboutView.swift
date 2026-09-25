@@ -70,6 +70,12 @@ struct SettingsView: View {
             Section("LINART") {
                 LabeledContent("Version", value: (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "1.0")
                 LabeledContent("Build", value: (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "1")
+                Button {
+                    store.selectedTab = 0
+                    store.introductionReplayRequested = true
+                } label: {
+                    Label("Replay welcome", systemImage: "play.circle")
+                }
             }
             Section {
                 Button("Clear all local app data", role: .destructive) { confirmReset = true }

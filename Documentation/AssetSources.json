@@ -261,5 +261,28 @@
       "caption": "LINART brand seal",
       "original_sha256": "2eff33a330e802d71bb8de48286533a6ac0f5ee818f7dc8b5bbe6e4ad77e6da3"
     }
+  ],
+  "generated_assets": [
+    {
+      "asset": "welcome-bathroom",
+      "source": "Owner-requested AI-generated concept inspired by supplied bathroom reference photos",
+      "method": "Built-in imagegen; initial reference-inspired generation followed by a white-balance and fixture-detail edit",
+      "reference_files": [
+        "IMG_0329.JPG",
+        "IMG_0325.JPG",
+        "IMG_0328.JPG",
+        "IMG_0327.JPG",
+        "IMG_0330.JPG",
+        "IMG_0326.JPG"
+      ],
+      "usage": "Decorative launch introduction only; not a documented portfolio project",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "format": "RGB PNG",
+      "sha256": "361a6f00e638dbf127e1b55b589b4feca727e0fc3cecc99f2db5138e75d0caa6",
+      "notes": "Documentation/SPLASH-ARTWORK.md"
+    }
   ]
 }

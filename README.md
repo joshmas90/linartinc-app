@@ -14,7 +14,7 @@ There are no third-party runtime packages, API keys, project generators or packa
 ## Features
 
 - Native Home, Projects, Services, My Project and More tabs.
-- First-launch LINART brand introduction with bundled project photography, a three-second reveal, immediate Skip, and a persistent completion flag. See `Documentation/FIRST-LAUNCH-INTRODUCTION.md` for behavior and device checks.
+- LINART welcome on each fresh app launch, with bundled splash artwork, five coordinated effects, immediate Skip and an optional Replay welcome action in Settings. Returning from the background and changing pages do not replay it. See `Documentation/FIRST-LAUNCH-INTRODUCTION.md` for timing and device checks.
 - Reference-inspired ivory/brass styling, responsive native hero text, portfolio category filters, image-first galleries and service pages.
 - A Project Studio menu with focused photo, inspiration, project-detail, budget/timing and review screens.
 - Searchable portfolio with full-screen, swipeable photo galleries.
@@ -56,6 +56,6 @@ Read `Documentation/AUDIT.md` and `Documentation/VERIFICATION.json` for the perf
 
 ## Provenance
 
-The previous iOS ZIP could not be recovered from the accessible conversation or local files, and the app repository was empty when inspected. This is a new implementation, not an audited copy of the previous ZIP. Business content and images were recovered from `joshmas90/linartinc` at commit `45ee6b05b0148a226f7a97717df6aa25a35d5c29`. See `Documentation/AssetSources.json` for original image paths and hashes. The original website banner remains bundled for provenance but is no longer displayed by the homepage. The app uses the existing kitchen-remodeling photograph with native, wrapping text and a working button.
+The previous iOS ZIP could not be recovered from the accessible conversation or local files, and the app repository was empty when inspected. This is a new implementation, not an audited copy of the previous ZIP. Business content and images were recovered from `joshmas90/linartinc` at commit `45ee6b05b0148a226f7a97717df6aa25a35d5c29`. See `Documentation/AssetSources.json` for original image paths and hashes. The original website banner remains bundled for provenance but is no longer displayed by the homepage. The Home screen uses the existing kitchen-remodeling photograph with native, wrapping text and a working button. The welcome introduction uses a separate, owner-requested AI-generated bathroom concept based on supplied reference photos; see `Documentation/SPLASH-ARTWORK.md`.
 
 `Scripts/verify_package.py` performs read-only structural checks and can also compare an extracted source directory with a ZIP. It uses Python 3.10+ and does not invoke Xcode or start a build.
