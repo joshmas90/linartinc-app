@@ -28,6 +28,9 @@ struct PlannerView: View {
                         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Brand.line))
                 }.buttonStyle(.plain).disabled(!studio.isReady).accessibilityIdentifier("openStudio")
                 Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary)
+                NavigationLink { CloudStudioView() } label: {
+                    Label("Send to LINART & account", systemImage: "paperplane").frame(maxWidth: .infinity, minHeight: 44)
+                }.buttonStyle(SecondaryButtonStyle())
                 SectionHeading(eyebrow: "Collected with care", title: "Saved inspiration")
                 if savedProjects.isEmpty {
                     Text("Save a project from the portfolio to keep the details you love close at hand.").foregroundStyle(Brand.secondary)

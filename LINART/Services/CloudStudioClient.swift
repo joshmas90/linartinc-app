@@ -41,6 +41,14 @@ struct CloudReceipt: Codable, Identifiable, Sendable {
     let submitted_at: String?
     var status: String?
     var created_at: String?
+    var submittedDate: Date? {
+        guard let submitted_at else { return nil }
+        let parser = ISO8601DateFormatter()
+        parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = parser.date(from: submitted_at) { return date }
+        parser.formatOptions = [.withInternetDateTime]
+        return parser.date(from: submitted_at)
+    }
 }
 struct CloudDeletionRequest: Codable, Sendable {
     let id: UUID

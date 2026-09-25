@@ -27,7 +27,7 @@ struct CloudStudioView: View {
                     Section("Submission receipt") {
                         Label("Received securely", systemImage: "checkmark.seal")
                         Text(receipt.id.uuidString).font(.caption.monospaced()).textSelection(.enabled)
-                        if let date = receipt.submitted_at { Text(date).font(.caption) }
+                        if let date = receipt.submittedDate { Text(date.formatted(date: .abbreviated, time: .shortened)).font(.caption) }
                     }
                 }
                 Section("Your app submissions") {
@@ -35,6 +35,7 @@ struct CloudStudioView: View {
                     ForEach(cloud.receipts) { receipt in
                         VStack(alignment: .leading, spacing: 8) {
                             Text(receipt.submitted_at == nil ? "Unfinished upload" : "Submitted Studio").font(.headline)
+                            if let date = receipt.submittedDate { Text(date.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(Brand.secondary) }
                             Text(receipt.id.uuidString).font(.caption.monospaced()).textSelection(.enabled)
                             Button("Delete this app submission", role: .destructive) { deleting = receipt }
                         }

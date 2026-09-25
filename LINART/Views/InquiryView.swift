@@ -149,6 +149,8 @@ struct InquiryView: View {
                 }
                 do { try await store.clearSavedInquiry() }
                 catch { store.inquiryDraftNotice = "Your inquiry was sent, but its saved local copy could not be removed. Clear local data in Settings to retry."; store.inquiry = Inquiry() }
+            } catch is CancellationError {
+                // Keep the entered draft; cancellation is not a delivery result.
             } catch let error as InquiryError {
                 guard !Task.isCancelled else { return }
                 errorMessage = error.localizedDescription

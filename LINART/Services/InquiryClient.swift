@@ -59,6 +59,8 @@ struct InquiryClient {
             (data, response) = try await session.data(for: request)
         } catch let error as URLError where error.code == .notConnectedToInternet || error.code == .cannotFindHost {
             throw InquiryError.offline
+        } catch let error as URLError where error.code == .cancelled {
+            throw CancellationError()
         } catch is CancellationError { throw CancellationError()
         } catch {
             throw InquiryError.unconfirmed

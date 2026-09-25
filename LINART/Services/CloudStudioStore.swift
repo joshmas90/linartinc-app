@@ -6,6 +6,7 @@ import Combine
     @Published private(set) var busy = false
     @Published private(set) var receipts: [CloudReceipt] = []
     @Published var notice: String?
+    @Published var authenticationMessage: String?
     @Published var lastReceipt: CloudReceipt?
     @Published private(set) var deletionRequest: CloudDeletionRequest?
     private let client = CloudStudioClient()
@@ -26,10 +27,12 @@ import Combine
     func handle(_ url: URL) {
         guard url.scheme?.lowercased() == "com.linartinc.linart" else { return }
         run {
-            try await self.client.finishSignIn(url: url)
+            do { try await self.client.finishSignIn(url: url) }
+            catch { if !Task.isCancelled { self.authenticationMessage = error.localizedDescription }; throw error }
             try Task.checkCancellation()
             self.email = try await self.client.signedInEmail()
             self.notice = "Signed in. Review your brief and choose Send to LINART when ready."
+            self.authenticationMessage = self.notice
             try await self.loadRemoteState()
         }
     }

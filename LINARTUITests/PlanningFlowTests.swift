@@ -4,8 +4,9 @@ final class PlanningFlowTests: XCTestCase {
     func testPlanningNavigationAndAccessibleInquiry() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
+        app.launchArguments = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launch()
-        let skip = app.buttons["skipBrandIntroduction"]
+        let skip = app.buttons["Continue to LINART"]
         if skip.waitForExistence(timeout: 5), skip.isHittable { skip.tap() }
         XCTAssertTrue(app.buttons["Explore our work"].waitForExistence(timeout: 8))
         capture("01-home", app)
@@ -29,7 +30,12 @@ final class PlanningFlowTests: XCTestCase {
         tab("More", app)
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Contact Us,")).firstMatch.tap()
         app.buttons["Start a Project Inquiry"].tap()
-        app.buttons["Continue"].tap()
+        let next = app.buttons["Continue"]
+        for _ in 0..<4 {
+            if next.exists && next.isHittable { break }
+            app.collectionViews.firstMatch.swipeUp()
+        }
+        XCTAssertTrue(next.isHittable); next.tap()
         XCTAssertTrue(app.staticTexts["Enter your name, up to 120 characters."].waitForExistence(timeout: 5))
         capture("05-inquiry-validation", app)
         app.buttons["Close"].tap()
@@ -53,7 +59,7 @@ final class PlanningFlowTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
-        let skip = app.buttons["skipBrandIntroduction"]
+        let skip = app.buttons["Continue to LINART"]
         if skip.waitForExistence(timeout: 5), skip.isHittable { skip.tap() }
         capture("08-large-text-home", app)
         tab("My Project", app)
@@ -88,7 +94,7 @@ final class PlanningFlowTests: XCTestCase {
         }
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         screenshot.name = name; screenshot.lifetime = .keepAlways; add(screenshot)
     }
 }
