@@ -14,7 +14,7 @@ There are no third-party runtime packages, API keys, project generators or packa
 ## Features
 
 - Native Home, Projects, Services, My Project and More tabs.
-- First-launch LINART brand introduction with bundled project photography, a three-second reveal, immediate Skip, and a persistent completion flag. See `Documentation/FIRST-LAUNCH-INTRODUCTION.md` for behavior and device checks.
+- LINART welcome on each fresh app launch, with bundled project photography, five coordinated effects, immediate Skip and an optional Replay welcome action in Settings. Returning from the background and changing pages do not replay it. See `Documentation/FIRST-LAUNCH-INTRODUCTION.md` for timing and device checks.
 - Reference-inspired ivory/brass styling, responsive native hero text, portfolio category filters, image-first galleries and service pages.
 - A Project Studio menu with focused photo, inspiration, project-detail, budget/timing and review screens.
 - Searchable portfolio with full-screen, swipeable photo galleries.

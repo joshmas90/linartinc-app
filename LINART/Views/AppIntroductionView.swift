@@ -1,17 +1,22 @@
 import SwiftUI
 
-/// Kept outside the tab hierarchy so navigation never replays the introduction.
+/// Once per app launch; returning from the background or navigating never replays.
 struct AppIntroductionView: View {
-    @AppStorage("linart.hasSeenBrandIntroduction") private var hasSeenIntroduction = false
+    @EnvironmentObject private var store: AppStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var openingIntroduction = true
+
+    private var isIntroductionPresented: Bool {
+        openingIntroduction || store.introductionReplayRequested
+    }
 
     var body: some View {
         ZStack {
             RootView()
-                .allowsHitTesting(hasSeenIntroduction)
-                .accessibilityHidden(!hasSeenIntroduction)
+                .allowsHitTesting(!isIntroductionPresented)
+                .accessibilityHidden(isIntroductionPresented)
 
-            if !hasSeenIntroduction {
+            if isIntroductionPresented {
                 BrandIntroductionView(onFinish: finishIntroduction)
                     .transition(reduceMotion ? .identity : .opacity)
                     .zIndex(1)
@@ -20,9 +25,11 @@ struct AppIntroductionView: View {
     }
 
     private func finishIntroduction() {
-        guard !hasSeenIntroduction else { return }
-        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.4)) {
-            hasSeenIntroduction = true
+        guard isIntroductionPresented else { return }
+        // The current screen stays mounted underneath, preserving navigation/drafts.
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.65)) {
+            openingIntroduction = false
+            store.introductionReplayRequested = false
         }
     }
 }
@@ -47,6 +54,18 @@ private struct BrandIntroductionView: View {
 
     private var shouldAutoDismiss: Bool {
         scenePhase == .active && !requiresManualDismissal
+    }
+
+    private var motionEnabled: Bool {
+        !reduceMotion && !requiresManualDismissal
+    }
+
+    private var contentVisible: Bool {
+        revealed || !motionEnabled
+    }
+
+    private func motion(_ animation: Animation) -> Animation? {
+        motionEnabled ? animation : nil
     }
 
     var body: some View {
@@ -83,11 +102,16 @@ private struct BrandIntroductionView: View {
         }
         .background(ivory.ignoresSafeArea())
         .accessibilityIdentifier("brandIntroduction")
-        .task {
-            guard !reduceMotion else { return }
-            withAnimation(.easeOut(duration: 0.8)) {
-                revealed = true
+        .transaction { transaction in
+            if !motionEnabled {
+                transaction.animation = nil
+                transaction.disablesAnimations = true
             }
+        }
+        .task {
+            // A single state change coordinates each element's local timing.
+            // Even without motion, retain the settled state if settings change.
+            revealed = true
         }
         .task(id: shouldAutoDismiss) {
             guard shouldAutoDismiss else { return }
@@ -103,27 +127,63 @@ private struct BrandIntroductionView: View {
 
     private var wordmark: some View {
         VStack(spacing: 14) {
-            Text("LINART")
-                .font(.system(size: wordmarkSize, weight: .regular, design: .serif))
-                .tracking(6)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
+            wordmarkLetters
                 .foregroundStyle(Brand.ink)
+                .overlay {
+                    if motionEnabled {
+                        wordmarkLightSweep
+                    }
+                }
+                .opacity(contentVisible ? 1 : 0)
+                .offset(y: contentVisible ? 0 : 5)
+                .animation(motion(.easeOut(duration: 0.55)), value: revealed)
                 .accessibilityAddTraits(.isHeader)
             Text("CRAFTED AROUND YOU")
                 .font(.caption.weight(.medium))
                 .tracking(2.4)
                 .foregroundStyle(Brand.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+                .opacity(contentVisible ? 1 : 0)
+                .offset(y: contentVisible ? 0 : 4)
+                .animation(motion(.easeOut(duration: 0.55).delay(0.18)), value: revealed)
             brassRule
+                .scaleEffect(x: contentVisible ? 1 : 0, y: 1)
+                .animation(motion(.easeInOut(duration: 0.45).delay(0.28)), value: revealed)
                 .padding(.top, 4)
         }
         .multilineTextAlignment(.center)
         .padding(.horizontal, 28)
         .padding(.vertical, 30)
         .frame(maxWidth: .infinity)
-        .opacity(revealed || reduceMotion ? 1 : 0)
         .accessibilityElement(children: .combine)
+    }
+
+    private var wordmarkLetters: some View {
+        Text("LINART")
+            .font(.system(size: wordmarkSize, weight: .regular, design: .serif))
+            .tracking(6)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
+    }
+
+    private var wordmarkLightSweep: some View {
+        GeometryReader { bounds in
+            LinearGradient(stops: [
+                .init(color: .clear, location: 0),
+                .init(color: Brand.brass.opacity(0.75), location: 0.36),
+                .init(color: Brand.gold, location: 0.5),
+                .init(color: Brand.brass.opacity(0.75), location: 0.64),
+                .init(color: .clear, location: 1)
+            ], startPoint: .leading, endPoint: .trailing)
+            .frame(width: bounds.size.width * 0.65, height: bounds.size.height * 2)
+            .rotationEffect(.degrees(12))
+            .offset(x: revealed ? bounds.size.width * 1.2 : -bounds.size.width * 0.9,
+                    y: -bounds.size.height * 0.5)
+            .animation(.easeInOut(duration: 1.05).delay(0.9), value: revealed)
+        }
+        .mask(wordmarkLetters)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 
     private var photograph: some View {
@@ -132,9 +192,14 @@ private struct BrandIntroductionView: View {
                 .resizable()
                 .scaledToFill()
                 .frame(width: bounds.size.width, height: bounds.size.height)
-                .scaleEffect(revealed || reduceMotion ? 1 : 1.025)
-                .opacity(revealed || reduceMotion ? 1 : 0.7)
+                .scaleEffect(motionEnabled && revealed ? 1.035 : 1)
+                .animation(motion(.easeInOut(duration: 2.55).delay(0.45)), value: revealed)
                 .clipped()
+                .mask(alignment: .top) {
+                    Rectangle()
+                        .scaleEffect(x: 1, y: contentVisible ? 1 : 0, anchor: .top)
+                        .animation(motion(.easeInOut(duration: 0.85).delay(0.45)), value: revealed)
+                }
         }
         .accessibilityHidden(true)
     }
@@ -146,10 +211,15 @@ private struct BrandIntroductionView: View {
                 .tracking(-0.5)
                 .foregroundStyle(Brand.ink)
                 .fixedSize(horizontal: false, vertical: true)
+                .opacity(contentVisible ? 1 : 0)
+                .offset(y: contentVisible ? 0 : 7)
+                .animation(motion(.easeOut(duration: 0.6).delay(0.85)), value: revealed)
             Text("NEW JERSEY")
                 .font(.caption.weight(.medium))
                 .tracking(3)
                 .foregroundStyle(Brand.secondary)
+                .opacity(contentVisible ? 1 : 0)
+                .animation(motion(.easeOut(duration: 0.55).delay(1.15)), value: revealed)
         }
         .multilineTextAlignment(.center)
         .padding(.horizontal, 28)
@@ -171,7 +241,7 @@ private struct BrandIntroductionView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Continue to LINART home")
+            .accessibilityLabel("Continue to LINART")
             .accessibilityIdentifier("skipBrandIntroduction")
         }
         .padding(.horizontal, 24)

@@ -11,6 +11,7 @@ final class AppStore: ObservableObject {
     @Published var inquiryPresented = false
     @Published var selectedTab = 0
     @Published var studioRequested = false
+    @Published var introductionReplayRequested = false
     private let defaults: UserDefaults
 
     static let planningSteps = [
