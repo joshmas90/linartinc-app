@@ -56,20 +56,41 @@ struct StudioReviewView: View {
 
     @ViewBuilder private var optionalDetails: some View {
         if !studio.draft.unansweredSections.isEmpty {
-            DisclosureGroup("Optional details to add (\(studio.draft.unansweredSections.count))", isExpanded: $showOptional) {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("You can share what you have and discuss the rest later.").font(.subheadline).foregroundStyle(Brand.secondary)
-                    ForEach(studio.draft.unansweredSections) { section in
-                        Button { onEdit(section) } label: {
-                            Label("Add \(section.title.lowercased())", systemImage: "plus.circle")
-                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                                .multilineTextAlignment(.leading)
-                        }.buttonStyle(.plain).disabled(!studio.isReady)
-                            .accessibilityIdentifier("studioEdit-\(section.id)")
+            VStack(alignment: .leading, spacing: showOptional ? 14 : 0) {
+                Button { showOptional.toggle() } label: {
+                    HStack(spacing: 12) {
+                        Text("Optional details to add (\(studio.draft.unansweredSections.count))")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Image(systemName: showOptional ? "chevron.up" : "chevron.down")
+                            .accessibilityHidden(true)
                     }
-                }.padding(.top, 14)
-            }.padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .frame(minHeight: 44)
                 .accessibilityIdentifier("studioOptionalDetails")
+                .accessibilityLabel("Optional details to add")
+                .accessibilityValue(showOptional ? "Expanded" : "Collapsed")
+                .accessibilityHint(showOptional ? "Hides optional project sections." : "Shows optional project sections.")
+
+                if showOptional {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("You can share what you have and discuss the rest later.").font(.subheadline).foregroundStyle(Brand.secondary)
+                        ForEach(studio.draft.unansweredSections) { section in
+                            Button { onEdit(section) } label: {
+                                Label("Add \(section.title.lowercased())", systemImage: "plus.circle")
+                                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                                    .multilineTextAlignment(.leading)
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(!studio.isReady)
+                            .accessibilityIdentifier("studioEdit-\(section.id)")
+                        }
+                    }
+                }
+            }
+            .padding(20)
+            .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
         }
     }
 
