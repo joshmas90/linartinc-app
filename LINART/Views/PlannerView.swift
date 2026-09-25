@@ -124,9 +124,14 @@ struct PlannerView: View {
             HStack(alignment: .firstTextBaseline, spacing: PremiumLayout.xs) {
                 Image(systemName: "lock").font(.caption2).foregroundStyle(Brand.bronze).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary)
-                    Text("Private on this device until you choose to share.")
-                        .font(.caption).foregroundStyle(Brand.secondary)
+                    if studio.saveLabel == "Private on this device" {
+                        Text("Private on this device until you choose to share.")
+                            .font(.caption).foregroundStyle(Brand.secondary)
+                    } else {
+                        Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary)
+                        Text("Private on this device until you choose to share.")
+                            .font(.caption).foregroundStyle(Brand.secondary)
+                    }
                 }
             }
         }
