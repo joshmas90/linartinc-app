@@ -17,7 +17,10 @@ final class StudioStore: ObservableObject {
     @Published var exportError: String?
     @Published var shareURL: URL?
     @Published var lastExportedAt: Date?
+    @Published private(set) var currentSection: StudioSection
     let persistence: StudioPersistence
+    private let defaults: UserDefaults
+    private static let sectionKey = "linart.studio.currentSection"
     private var generation = 0
     private var revision = 0
     private var suppressChanges = false
@@ -25,7 +28,16 @@ final class StudioStore: ObservableObject {
     private var importTask: Task<Void, Never>?
     private var exportTask: Task<Void, Never>?
 
-    init(persistence: StudioPersistence = StudioPersistence()) { self.persistence = persistence }
+    init(persistence: StudioPersistence = StudioPersistence(), defaults: UserDefaults = .standard) {
+        self.persistence = persistence
+        self.defaults = defaults
+        currentSection = defaults.string(forKey: Self.sectionKey).flatMap(StudioSection.init(rawValue:)) ?? .details
+    }
+    func move(to section: StudioSection) {
+        guard isReady else { return }
+        currentSection = section
+        defaults.set(section.rawValue, forKey: Self.sectionKey)
+    }
     var isReady: Bool { state == .ready }
     var saveLabel: String {
         if isSaving { return "Saving on this device…" }
@@ -106,6 +118,8 @@ final class StudioStore: ObservableObject {
             try await persistence.reset(to: generation)
             suppressChanges = true; draft = StudioDraft(); suppressChanges = false
             revision = 0; savedAt = nil; hasUnsavedChanges = false; lastExportedAt = nil; shareURL = nil; exportError = nil
+            currentSection = .details
+            defaults.removeObject(forKey: Self.sectionKey)
             notice = "Your local Studio and prepared exports were removed."
             state = .ready
         } catch {

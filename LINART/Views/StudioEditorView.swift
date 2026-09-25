@@ -7,119 +7,259 @@ struct StudioEditorView: View {
     @State private var selections: [PhotosPickerItem] = []
     @State private var purpose = "My space"
     @State private var filter = "All"
-    @State private var newURL = ""
-    @State private var newNote = ""
-    @State private var confirmClear = false
+    @State private var moreDetails = false
+    @State private var showLinkEditor = false
+    @State private var showIdeas = false
     private let purposes = ["My space", "Inspiration", "Plans & drawings"]
+
     var body: some View {
         Form {
-            Section { StudioStatusView(); Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary) }
-            if section == .photos { photos }
-            if section == .details {
-                Section("A little context · optional") {
-                    StudioField(title: "Your inquiry email", text: $studio.draft.inquiryEmail, email: true)
-                    Picker("Project type", selection: $studio.draft.projectType) {
-                        Text("Not decided").tag("")
-                        ForEach(Inquiry.serviceOptions, id: \.self) { Text($0).tag($0) }
-                    }
-                    StudioField(title: "What would you like to create?", text: $studio.draft.goals)
-                    StudioField(title: "What does the space look like today?", text: $studio.draft.existingConditions)
-                }
-                Section("Considered details · optional") {
-                    StudioField(title: "Style, finishes or materials you like", text: $studio.draft.style)
-                    StudioField(title: "What matters most to you?", text: $studio.draft.priorities)
-                    StudioField(title: "Existing plans, constraints or site access", text: $studio.draft.constraints)
-                    StudioField(title: "Anything else we should know?", text: $studio.draft.other)
-                }
-            }
-            if section == .timing {
-                Section("Looking ahead · optional") {
-                    StudioField(title: "Investment range or budget considerations", text: $studio.draft.investment)
-                    StudioField(title: "Ideal project timing", text: $studio.draft.timeline)
-                }
-            }
-            if section == .links { references }
             Section {
-                NavigationLink { StudioReviewView() } label: { Label("Review & share", systemImage: "doc.text.magnifyingglass") }
-                Button("Save now", systemImage: "square.and.arrow.down") { Task { await studio.flush() } }
-                Button("Clear my private Studio", role: .destructive) { confirmClear = true }
-            }
-        }.disabled(!studio.isReady)
-            .scrollContentBackground(.hidden).background(Brand.cream).scrollDismissesKeyboard(.interactively)
-            .navigationTitle(section.rawValue).navigationBarTitleDisplayMode(.inline)
+                StudioStepHeader(section: section)
+            }.listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 12, trailing: 0))
+            Section { StudioStatusView() }
+            Group {
+                if section == .details { details }
+                if section == .photos { photos }
+                if section == .links { references }
+                if section == .timing {
+                    Section("Looking ahead · optional") {
+                        StudioField(title: "Investment range or budget considerations", text: $studio.draft.investment,
+                                    placeholder: "A range is helpful, or say you are still exploring.")
+                        StudioField(title: "Ideal project timing", text: $studio.draft.timeline,
+                                    placeholder: "For example, this fall or flexible.")
+                    }
+                }
+            }.disabled(!studio.isReady)
+        }.scrollContentBackground(.hidden).background(Brand.cream).scrollDismissesKeyboard(.interactively)
             .onChange(of: selections) { _, items in
                 guard !items.isEmpty else { return }
                 studio.importPhotos(items, purpose: purpose); selections = []
             }
-            .onDisappear { Task { await studio.flush() } }
-            .confirmationDialog("Remove your saved Studio?", isPresented: $confirmClear, titleVisibility: .visible) {
-                Button("Remove all photos and answers", role: .destructive) { Task { do { try await studio.clear() } catch { /* Store displays the failure. */ } } }
-            } message: { Text("Deletes this device’s Studio and prepared exports. Anything already shared remains with its recipient.") }
+            .sheet(isPresented: $showLinkEditor) { StudioLinkEditor() }
+            .sheet(isPresented: $showIdeas) { StudioIdeasPicker() }
+            .onAppear {
+                let draft = studio.draft
+                moreDetails = [draft.style, draft.priorities, draft.constraints, draft.other, draft.inquiryEmail]
+                    .contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            }
+    }
+
+    private var details: some View {
+        Group {
+            Section("Start with the basics · optional") {
+                Picker("Project type", selection: $studio.draft.projectType) {
+                    Text("Not decided yet").tag("")
+                    ForEach(Inquiry.serviceOptions, id: \.self) { Text($0).tag($0) }
+                }
+                StudioField(title: "What would you like to create?", text: $studio.draft.goals,
+                            placeholder: "For example, a brighter kitchen with more storage.")
+                StudioField(title: "What does the space look like today?", text: $studio.draft.existingConditions,
+                            placeholder: "Tell us what works and what you would like to change.")
+            }
+            Section {
+                DisclosureGroup("More project details", isExpanded: $moreDetails) {
+                    StudioField(title: "Style, finishes or materials you like", text: $studio.draft.style,
+                                placeholder: "For example, warm wood and simple, clean lines.")
+                    StudioField(title: "What matters most to you?", text: $studio.draft.priorities,
+                                placeholder: "More storage, accessibility, room for family…")
+                    StudioField(title: "Existing plans, constraints or site access", text: $studio.draft.constraints)
+                    StudioField(title: "Anything else we should know?", text: $studio.draft.other)
+                    StudioField(title: "Your inquiry email", text: $studio.draft.inquiryEmail, email: true,
+                                placeholder: "If you have already contacted LINART")
+                }
+            } footer: {
+                Text("You do not need all the answers today. Continue when you are ready.")
+            }
+        }
     }
 
     private var photos: some View {
-        let pickerTitle = studio.isImporting ? "Adding photos…" : "Add photos"
-        return Section {
-            Picker("Photos you are adding", selection: $purpose) { ForEach(purposes, id: \.self) { Text($0).tag($0) } }.disabled(studio.isImporting)
-            PhotosPicker(selection: $selections, maxSelectionCount: max(1, 8 - studio.draft.photos.count), matching: .images) {
-                Label(pickerTitle, systemImage: "photo.badge.plus")
-            }.disabled(studio.isImporting || studio.draft.photos.count >= 8)
-            Text("Up to 8 photos, at 1,600 pixels or smaller. Imported copies stay in your Studio. Your originals are unchanged.").font(.caption).foregroundStyle(Brand.secondary)
-            Picker("Show photos", selection: $filter) {
-                Text("All").tag("All")
-                ForEach(purposes, id: \.self) { Text($0).tag($0) }
-            }
-            ForEach($studio.draft.photos) { $photo in
-                if filter == "All" || photo.purpose == filter {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(alignment: .top) {
-                            StudioThumbnail(photo: photo)
-                            Picker("Purpose", selection: $photo.purpose) { ForEach(purposes, id: \.self) { Text($0).tag($0) } }
-                            Button(role: .destructive) { Task { await studio.removePhoto(photo) } } label: {
-                                Image(systemName: "trash").frame(minWidth: 44, minHeight: 44)
-                            }.buttonStyle(.borderless).accessibilityLabel("Remove \(photo.purpose) photo")
+        Group {
+            Section {
+                Picker("Type of photo", selection: $purpose) {
+                    ForEach(purposes, id: \.self) { Text($0).tag($0) }
+                }.disabled(studio.isImporting)
+                PhotosPicker(selection: $selections, maxSelectionCount: max(1, 8 - studio.draft.photos.count), matching: .images) {
+                    Label(studio.isImporting ? "Adding photos…" : "Choose photos", systemImage: "photo.badge.plus")
+                        .frame(minHeight: 44)
+                }.disabled(studio.isImporting || studio.draft.photos.count >= 8)
+                    .accessibilityIdentifier("studioAddPhotos")
+                Text("\(studio.draft.photos.count) of 8 photos added. Only the photos you choose are copied into your plan.")
+                    .font(.caption).foregroundStyle(Brand.secondary)
+                if studio.isImporting { ProgressView("Adding your selected photos…") }
+                if studio.draft.photos.isEmpty && !studio.isImporting {
+                    Text("No photos handy? Skip this step and come back later.")
+                        .foregroundStyle(Brand.secondary)
+                }
+            } header: { Text("Add photos · optional") }
+
+            if !studio.draft.photos.isEmpty {
+                Section("Your selected photos") {
+                    Picker("Show photos", selection: $filter) {
+                        Text("All").tag("All")
+                        ForEach(purposes, id: \.self) { Text($0).tag($0) }
+                    }
+                    if filter != "All" && !studio.draft.photos.contains(where: { $0.purpose == filter }) {
+                        Text("No photos in this category. Choose All to see your other photos.")
+                            .font(.footnote).foregroundStyle(Brand.secondary)
+                    }
+                    ForEach($studio.draft.photos) { $photo in
+                        if filter == "All" || photo.purpose == filter {
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack(alignment: .top) {
+                                    StudioThumbnail(photo: photo)
+                                    Spacer()
+                                    Button(role: .destructive) { Task { await studio.removePhoto(photo) } } label: {
+                                        Image(systemName: "trash").frame(minWidth: 44, minHeight: 44)
+                                    }.buttonStyle(.borderless).accessibilityLabel("Remove \(photo.purpose) photo")
+                                }
+                                Picker("Photo type", selection: $photo.purpose) {
+                                    ForEach(purposes, id: \.self) { Text($0).tag($0) }
+                                }
+                                StudioField(title: "What should LINART notice?", text: $photo.note,
+                                            placeholder: "For example, the wall we would like to open up.")
+                            }.padding(.vertical, 8)
                         }
-                        StudioField(title: "What should LINART notice?", text: $photo.note)
-                    }.padding(.vertical, 8)
+                    }
                 }
             }
-        } header: { Text("Your photo library") }
+        }
     }
 
     private var references: some View {
         Group {
-            Section("Inspiration links · optional") {
-                TextField("Full web address", text: $newURL).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                StudioField(title: "What appeals to you?", text: $newNote)
-                Button("Add link", systemImage: "link.badge.plus") { addLink() }.disabled(studio.draft.references.count >= 10 || newURL.isEmpty)
+            Section {
+                if studio.draft.references.isEmpty {
+                    Text("Have a room, finish or product in mind? Save its web address here.")
+                        .foregroundStyle(Brand.secondary)
+                }
                 ForEach(studio.draft.references) { reference in
                     VStack(alignment: .leading, spacing: 8) {
                         Text(reference.url).font(.footnote).textSelection(.enabled)
                         if !reference.note.isEmpty { Text(reference.note) }
                         Button("Remove link", role: .destructive) { studio.draft.references.removeAll { $0.id == reference.id } }
+                            .buttonStyle(.borderless).frame(minHeight: 44)
                     }
                 }
+                Button("Add a web link", systemImage: "link.badge.plus") { showLinkEditor = true }
+                    .disabled(studio.draft.references.count >= 10).frame(minHeight: 44)
+                    .accessibilityIdentifier("studioAddLink")
+            } header: { Text("Web inspiration · optional") } footer: {
+                Text("\(studio.draft.references.count) of 10 links added.")
             }
-            Section("From the LINART portfolio") {
-                if studio.draft.ideas.isEmpty { Text("Include a saved project from My Project, then add what you like about it here.").foregroundStyle(Brand.secondary) }
+
+            Section("Ideas from LINART projects · optional") {
+                if studio.draft.ideas.isEmpty {
+                    Text("Choose details you like from our portfolio without leaving your plan.")
+                        .foregroundStyle(Brand.secondary)
+                }
                 ForEach($studio.draft.ideas) { $idea in
                     VStack(alignment: .leading, spacing: 8) {
                         Text(idea.title).font(.headline)
-                        StudioField(title: "The details you love", text: $idea.note)
+                        StudioField(title: "The details you love", text: $idea.note,
+                                    placeholder: "For example, the cabinetry or the open layout.")
                         Button("Remove from brief", role: .destructive) { studio.draft.ideas.removeAll { $0.id == idea.id } }
+                            .buttonStyle(.borderless).frame(minHeight: 44)
                     }
                 }
+                Button("Choose from LINART projects", systemImage: "square.grid.2x2") { showIdeas = true }
+                    .frame(minHeight: 44).accessibilityIdentifier("studioChooseIdeas")
             }
         }
     }
+}
+
+struct StudioLinkEditor: View {
+    @EnvironmentObject private var studio: StudioStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var url = ""
+    @State private var note = ""
+    @State private var error: String?
+    @FocusState private var addressFocused: Bool
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Web address") {
+                    TextField("https://…", text: $url)
+                        .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .accessibilityLabel("Full web address").focused($addressFocused)
+                    if let error { Label(error, systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.red) }
+                }
+                Section { StudioField(title: "What appeals to you?", text: $note) }
+            }.navigationTitle("Add inspiration").navigationBarTitleDisplayMode(.inline)
+                .scrollDismissesKeyboard(.interactively)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Add link") { addLink() }
+                            .disabled(url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !studio.isReady || studio.draft.references.count >= 10)
+                    }
+                }
+        }.tint(Brand.bronze)
+            // An unfinished link cannot disappear because of an accidental sheet swipe.
+            .interactiveDismissDisabled(!url.isEmpty || !note.isEmpty)
+    }
+
     private func addLink() {
-        let raw = newURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let url = URLComponents(string: raw), ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
-              let host = url.host, host.contains("."), url.user == nil, url.password == nil, raw.count <= 1000 else {
-            studio.notice = "Enter a complete http or https web address without sign-in details."; return
+        let raw = url.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let components = URLComponents(string: raw), ["http", "https"].contains(components.scheme?.lowercased() ?? ""),
+              let host = components.host, host.contains("."), components.user == nil, components.password == nil, raw.count <= 1000 else {
+            error = "Enter a full web address beginning with https:// or http://."
+            addressFocused = true
+            return
         }
-        studio.draft.references.append(StudioReference(url: raw, note: String(newNote.prefix(2000))))
-        newURL = ""; newNote = ""; studio.notice = nil
+        guard studio.isReady, studio.draft.references.count < 10 else { return }
+        studio.draft.references.append(StudioReference(url: raw, note: String(note.prefix(2000))))
+        Task { await studio.flush() }
+        dismiss()
+    }
+}
+
+struct StudioIdeasPicker: View {
+    @EnvironmentObject private var store: AppStore
+    @EnvironmentObject private var studio: StudioStore
+    @Environment(\.dismiss) private var dismiss
+
+    private var projects: [PortfolioProject] {
+        let projects = store.catalog?.projects ?? []
+        return projects.filter { store.favorites.contains($0.id) } + projects.filter { !store.favorites.contains($0.id) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Text("Tap a project to include it in your brief. You can add a note about the details you love afterward.")
+                        .foregroundStyle(Brand.secondary)
+                }
+                ForEach(projects) { project in
+                    let included = studio.draft.ideas.contains { $0.id == project.id }
+                    Button { studio.include(project) } label: {
+                        HStack(alignment: .top, spacing: 14) {
+                            if let photo = project.photos.first {
+                                Image(photo.asset).resizable().scaledToFill().frame(width: 64, height: 64)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8)).accessibilityHidden(true)
+                            }
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(project.title).font(.headline).foregroundStyle(Brand.ink)
+                                Text(included ? "Included in your brief" : store.favorites.contains(project.id) ? "Saved favorite · tap to include" : "Tap to include")
+                                    .font(.caption).foregroundStyle(Brand.secondary)
+                            }.fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 0)
+                            Image(systemName: included ? "checkmark.circle.fill" : "plus.circle").foregroundStyle(Brand.bronze)
+                        }.padding(.vertical, 8)
+                    }.buttonStyle(.plain).disabled(included || !studio.isReady)
+                        .accessibilityIdentifier("studioIdea-\(project.id)")
+                }
+                if projects.isEmpty {
+                    Text("The portfolio could not be loaded. Your plan is still available; you can add ideas later.")
+                        .foregroundStyle(Brand.secondary)
+                }
+            }.navigationTitle("Choose inspiration").navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }.tint(Brand.bronze)
     }
 }
 
@@ -127,15 +267,15 @@ struct StudioField: View {
     let title: String
     @Binding var text: String
     var email = false
+    var placeholder = "Optional"
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(title).font(.subheadline.weight(.medium))
-            TextField("Optional", text: $text, axis: .vertical).lineLimit(2...6).accessibilityLabel(title)
+            TextField(placeholder, text: $text, axis: .vertical).lineLimit(2...6).accessibilityLabel(title)
                 .keyboardType(email ? .emailAddress : .default).textInputAutocapitalization(email ? .never : .sentences).autocorrectionDisabled(email)
         }.padding(.vertical, 4)
     }
 }
-
 struct StudioThumbnail: View {
     let photo: StudioPhoto
     @EnvironmentObject private var studio: StudioStore

@@ -3,87 +3,166 @@ import UIKit
 
 struct StudioReviewView: View {
     @EnvironmentObject private var studio: StudioStore
+    let onEdit: (StudioSection) -> Void
+    let onSaveAndClose: () -> Void
     @State private var format: StudioExportMode = .projectBook
+    @State private var showPDF = false
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                SectionHeading(eyebrow: "In your own words", title: "Your project, considered.")
+                StudioStepHeader(section: .review)
                 StudioStatusView()
-                briefPreview
-                Picker("Export format", selection: $format) {
-                    Text("Project book").tag(StudioExportMode.projectBook)
-                    Text("Summary").tag(StudioExportMode.summary)
-                }.pickerStyle(.segmented)
-                Text(format == .projectBook ? "Your complete answers and all \(studio.draft.photos.count) photos, with notes and page numbers." : "A concise overview of your goals, priorities, investment and timing. Photos and detailed notes stay in the project book.")
-                    .font(.footnote).foregroundStyle(Brand.secondary)
-                if let message = studio.exportError { Label(message, systemImage: "exclamationmark.circle").foregroundStyle(.red) }
-                Button { studio.export(mode: format) } label: {
-                    HStack { if studio.isExporting { ProgressView().tint(.white) }; Text(studio.isExporting ? "Preparing your PDF…" : "Export & share PDF"); Image(systemName: "square.and.arrow.up") }
-                }.buttonStyle(PrimaryButtonStyle()).disabled(!studio.isReady || studio.isImporting || studio.isExporting)
-                Text("Choose your email app, address the message to \(Company.email), and send the PDF. Sharing opens another app; delivery is not confirmed here.").font(.footnote).foregroundStyle(Brand.secondary)
-                Divider()
-                NavigationLink { CloudStudioView() } label: { Label("Send directly to LINART", systemImage: "paperplane").frame(maxWidth: .infinity, minHeight: 44) }.buttonStyle(SecondaryButtonStyle())
-                if let date = studio.lastExportedAt { Text("Last prepared \(date.formatted(date: .abbreviated, time: .shortened)).").font(.caption).foregroundStyle(Brand.secondary) }
-            }.padding(24).padding(.bottom, 20).frame(maxWidth: 760).frame(maxWidth: .infinity)
-        }.background(Brand.cream).navigationTitle("Review & share").navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: Binding(get: { studio.shareURL != nil }, set: { value in if !value, let url = studio.shareURL { studio.finishSharing(url) } })) {
+                if !studio.draft.hasProjectContent {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Your plan is still a blank page.").font(.headline)
+                        Text("Add a few words, a photo or an idea before sharing. You can leave the rest for later.")
+                            .foregroundStyle(Brand.secondary)
+                        Button("Add project details") { onEdit(.details) }.buttonStyle(SecondaryButtonStyle())
+                    }.padding(22).background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
+                }
+                projectPreview
+                photoPreview
+                inspirationPreview
+                timingPreview
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Ready to share your plan?").font(.system(.title2, design: .serif))
+                    Text("Send your brief and selected photos directly to LINART. You will verify your email and confirm before anything is sent.")
+                        .foregroundStyle(Brand.secondary)
+                    Text("Use Send to LINART below, or save your draft and return whenever you are ready.")
+                        .font(.footnote).foregroundStyle(Brand.secondary)
+                    Button("Save for later", action: onSaveAndClose).buttonStyle(SecondaryButtonStyle())
+                        .disabled(!studio.isReady).accessibilityIdentifier("studioSaveForLater")
+                }.padding(22).background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
+                pdfOptions
+            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+        }.background(Brand.cream)
+            .sheet(isPresented: Binding(get: { studio.shareURL != nil }, set: { value in
+                if !value, let url = studio.shareURL { studio.finishSharing(url) }
+            })) {
                 if let url = studio.shareURL { StudioShareSheet(items: [url]) { studio.finishSharing(url) } }
             }
     }
-    private var briefPreview: some View {
-        VStack(alignment: .leading, spacing: 22) {
-            if studio.draft.isEmpty {
-                Label("Your story starts here", systemImage: "square.and.pencil").font(.headline)
-                Text("Add a few thoughts or photos in your Studio. Only the details you choose will appear in this preview.").foregroundStyle(Brand.secondary)
+
+    private var projectPreview: some View {
+        previewCard(.details) {
+            let d = studio.draft
+            let topics = [("Project type", d.projectType), ("What you would like to create", d.goals),
+                          ("Your space today", d.existingConditions), ("Style & materials", d.style),
+                          ("What matters most", d.priorities), ("Things to consider", d.constraints),
+                          ("Anything else", d.other), ("Inquiry email", d.inquiryEmail)]
+                .filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            if topics.isEmpty { optionalNote("No project details added yet.") }
+            ForEach(topics, id: \.0) { title, value in
+                answer(title, value)
             }
-            ForEach(answeredTopics, id: \.title) { topic in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(topic.title).font(.caption.weight(.semibold)).foregroundStyle(Brand.bronze)
-                    Text(topic.value).font(.body).lineSpacing(4).textSelection(.enabled)
-                }
-            }
-            if !studio.draft.photos.isEmpty {
-                Divider()
-                Text("Your selected photos").font(.headline)
-                ForEach(studio.draft.photos) { photo in
-                    HStack(alignment: .top, spacing: 14) {
-                        StudioThumbnail(photo: photo)
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(photo.purpose).font(.subheadline.weight(.medium))
-                            if !photo.note.isEmpty { Text(photo.note).font(.subheadline).foregroundStyle(Brand.secondary) }
-                        }
-                    }
-                }
-            }
-            if !studio.draft.ideas.isEmpty {
-                Divider(); Text("Details you love").font(.headline)
-                ForEach(studio.draft.ideas) { idea in
+        }
+    }
+
+    private var photoPreview: some View {
+        previewCard(.photos) {
+            if studio.draft.photos.isEmpty { optionalNote("No photos added. You can add these later.") }
+            ForEach(studio.draft.photos) { photo in
+                HStack(alignment: .top, spacing: 14) {
+                    StudioThumbnail(photo: photo)
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(idea.title).font(.subheadline.weight(.medium))
-                        if !idea.note.isEmpty { Text(idea.note).foregroundStyle(Brand.secondary) }
+                        Text(photo.purpose).font(.subheadline.weight(.medium))
+                        if !photo.note.isEmpty { Text(photo.note).font(.subheadline).foregroundStyle(Brand.secondary) }
                     }
                 }
             }
-            if !studio.draft.references.isEmpty {
-                Divider(); Text("Inspiration links").font(.headline)
-                ForEach(studio.draft.references) { reference in
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(reference.url).font(.subheadline).textSelection(.enabled)
-                        if !reference.note.isEmpty { Text(reference.note).foregroundStyle(Brand.secondary) }
-                    }
+        }
+    }
+
+    private var inspirationPreview: some View {
+        previewCard(.links) {
+            if studio.draft.ideas.isEmpty && studio.draft.references.isEmpty {
+                optionalNote("No inspiration added. This is optional.")
+            }
+            ForEach(studio.draft.ideas) { idea in
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(idea.title).font(.subheadline.weight(.medium))
+                    if !idea.note.isEmpty { Text(idea.note).foregroundStyle(Brand.secondary) }
                 }
             }
+            ForEach(studio.draft.references) { reference in
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(reference.url).font(.subheadline).textSelection(.enabled)
+                    if !reference.note.isEmpty { Text(reference.note).foregroundStyle(Brand.secondary) }
+                }
+            }
+        }
+    }
+
+    private var timingPreview: some View {
+        previewCard(.timing) {
+            if !StudioSection.timing.hasContent(in: studio.draft) {
+                optionalNote("Budget and timing are open for discussion.")
+            }
+            if !studio.draft.investment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                answer("Budget considerations", studio.draft.investment)
+            }
+            if !studio.draft.timeline.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                answer("Ideal timing", studio.draft.timeline)
+            }
+        }
+    }
+
+    private func previewCard<Content: View>(_ section: StudioSection, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(alignment: .top, spacing: 12) {
+                Text(section.title).font(.headline).accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 0)
+                Button("Edit") { onEdit(section) }.frame(minWidth: 44, minHeight: 44)
+                    .accessibilityLabel("Edit \(section.title)")
+                    .accessibilityIdentifier("studioEdit-\(section.id)")
+                    .disabled(!studio.isReady)
+            }
+            content()
         }.padding(22).frame(maxWidth: .infinity, alignment: .leading)
             .background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Brand.line))
     }
-    private var answeredTopics: [(title: String, value: String)] {
-        let d = studio.draft
-        return [("Project",d.projectType),("Contact email",d.inquiryEmail),
-                ("The spaces you imagine",d.goals),("Your home today",d.existingConditions),
-                ("Style & materials",d.style),("What matters most",d.priorities),
-                ("Investment",d.investment),("Timing",d.timeline),
-                ("Things to consider",d.constraints),("Anything else",d.other)]
-            .filter { !$0.1.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
+    private func answer(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.caption.weight(.semibold)).foregroundStyle(Brand.bronze)
+            Text(value).lineSpacing(4).textSelection(.enabled)
+        }
+    }
+
+    private func optionalNote(_ text: String) -> some View {
+        Text(text).font(.subheadline).foregroundStyle(Brand.secondary)
+    }
+
+    private var pdfOptions: some View {
+        DisclosureGroup("Prefer to save or share a PDF?", isExpanded: $showPDF) {
+            VStack(alignment: .leading, spacing: 14) {
+                Picker("Export format", selection: $format) {
+                    Text("Project book").tag(StudioExportMode.projectBook)
+                    Text("Summary").tag(StudioExportMode.summary)
+                }.pickerStyle(.menu)
+                Text(format == .projectBook ? "Your complete answers and all \(studio.draft.photos.count) photos, with notes." : "A short overview of your goals, priorities, budget and timing.")
+                    .font(.footnote).foregroundStyle(Brand.secondary)
+                if let message = studio.exportError {
+                    Label(message, systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                }
+                Button { studio.export(mode: format) } label: {
+                    HStack {
+                        if studio.isExporting { ProgressView() }
+                        Text(studio.isExporting ? "Preparing your PDF…" : "Export & share PDF")
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }.buttonStyle(SecondaryButtonStyle())
+                    .disabled(!studio.isReady || studio.isImporting || studio.isExporting || !studio.draft.hasProjectContent)
+                Text("Save a copy or choose your email app and send it to \(Company.email). Opening the share sheet does not send it automatically.")
+                    .font(.footnote).foregroundStyle(Brand.secondary)
+                if let date = studio.lastExportedAt {
+                    Text("Last prepared \(date.formatted(date: .abbreviated, time: .shortened)).")
+                        .font(.caption).foregroundStyle(Brand.secondary)
+                }
+            }.padding(.top, 14)
+        }.padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
     }
 }
 

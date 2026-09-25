@@ -12,21 +12,51 @@ final class PlanningFlowTests: XCTestCase {
         capture("01-home", app)
         tab("My Project", app)
         let studio = app.buttons["openStudio"]
-        XCTAssertTrue(studio.waitForExistence(timeout: 5)); studio.tap()
-        capture("02-studio-hub", app)
-        app.buttons["studio-The spaces you imagine"].tap()
+        tapWhenVisible(studio, in: app)
+        chooseStep("details", in: app)
+        capture("02-guided-project-details", app)
         let goals = app.textFields["What would you like to create?"]
         XCTAssertTrue(goals.waitForExistence(timeout: 5))
-        goals.tap(); goals.typeText("More daylight and a calmer kitchen.")
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.buttons["studio-Review & share"].tap()
+        tapWhenVisible(goals, in: app); goals.typeText("More daylight and a calmer kitchen.")
+        app.toolbars.buttons["Done"].tap()
+        tapWhenVisible(app.buttons["studioContinue"], in: app)
+        XCTAssertTrue(app.buttons["studioAddPhotos"].waitForExistence(timeout: 5))
+        tapWhenVisible(app.buttons["studioSkip"], in: app)
+        tapWhenVisible(app.buttons["studioAddLink"], in: app)
+        let address = app.textFields["Full web address"]
+        XCTAssertTrue(address.waitForExistence(timeout: 5))
+        address.tap(); address.typeText("https://example.com/kitchen")
+        app.navigationBars.buttons["Add link"].tap()
+        XCTAssertTrue(app.staticTexts["https://example.com/kitchen"].waitForExistence(timeout: 5))
+        tapWhenVisible(app.buttons["studioContinue"], in: app)
+        XCTAssertTrue(app.textFields["Ideal project timing"].waitForExistence(timeout: 5))
+        app.buttons["studioBack"].tap()
+        XCTAssertTrue(app.staticTexts["https://example.com/kitchen"].waitForExistence(timeout: 5))
+        app.buttons["studioContinue"].tap()
+        app.buttons["studioSkip"].tap()
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "More daylight and a calmer kitchen.")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["studioSend"].isEnabled)
+        tapWhenVisible(app.buttons["studioEdit-details"], in: app)
+        let editedGoals = app.textFields["What would you like to create?"]
+        XCTAssertTrue(editedGoals.waitForExistence(timeout: 5))
+        tapWhenVisible(editedGoals, in: app); editedGoals.typeText(" Natural finishes.")
+        app.toolbars.buttons["Done"].tap()
+        app.buttons["studioContinue"].tap()
+        XCTAssertTrue(app.buttons["studioSend"].waitForExistence(timeout: 5))
         capture("03-review", app)
         XCUIDevice.shared.orientation = .landscapeLeft
         settleRotation(app, landscape: true)
         capture("04-review-landscape", app)
         XCUIDevice.shared.orientation = .portrait
         settleRotation(app, landscape: false)
+        tapWhenVisible(app.buttons["studioSaveForLater"], in: app)
+        XCTAssertTrue(app.buttons["openStudio"].waitForExistence(timeout: 5))
+        app.terminate()
+        app.launch()
+        tab("My Project", app)
+        tapWhenVisible(app.buttons["openStudio"], in: app)
+        XCTAssertTrue(app.buttons["studioSend"].waitForExistence(timeout: 5), "The draft should reopen at the review step")
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "More daylight and a calmer kitchen.")).firstMatch.exists)
         tab("More", app)
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Contact Us,")).firstMatch.tap()
         app.buttons["Start a Project Inquiry"].tap()
@@ -67,11 +97,54 @@ final class PlanningFlowTests: XCTestCase {
         capture("08-large-text-home", app)
         tab("My Project", app)
         let studio = app.buttons["openStudio"]
-        XCTAssertTrue(studio.waitForExistence(timeout: 5))
-        if !studio.isHittable { app.swipeUp() }
-        XCTAssertTrue(studio.isHittable); studio.tap()
+        tapWhenVisible(studio, in: app)
+        chooseStep("photos", in: app)
+        XCTAssertTrue(app.buttons["studioContinue"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["studioContinue"].isHittable)
         capture("09-large-text-studio", app)
     }
+    func testSkipEmptyPlanAndResume() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launch()
+        let welcome = app.buttons["Continue to LINART"]
+        if welcome.waitForExistence(timeout: 5), welcome.isHittable { welcome.tap() }
+        tab("More", app)
+        let settings = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Settings,")).firstMatch
+        tapWhenVisible(settings, in: app)
+        app.buttons["Clear all local app data"].tap()
+        app.buttons["Clear local data"].tap()
+        tab("My Project", app)
+        tapWhenVisible(app.buttons["openStudio"], in: app)
+        for _ in 0..<4 { tapWhenVisible(app.buttons["studioSkip"], in: app) }
+        let send = app.buttons["studioSend"]
+        XCTAssertTrue(send.waitForExistence(timeout: 5))
+        XCTAssertFalse(send.isEnabled, "An empty plan must not look ready to send")
+        app.buttons["studioBack"].tap()
+        XCTAssertTrue(app.textFields["Ideal project timing"].waitForExistence(timeout: 5))
+        app.buttons["Project options"].tap()
+        app.buttons["Save & close"].tap()
+        tapWhenVisible(app.buttons["openStudio"], in: app)
+        XCTAssertTrue(app.textFields["Ideal project timing"].waitForExistence(timeout: 5))
+        app.buttons["studioSkip"].tap()
+        XCTAssertFalse(app.buttons["studioSend"].isEnabled)
+    }
+
+    private func chooseStep(_ id: String, in app: XCUIApplication) {
+        app.buttons["studioSteps"].tap()
+        tapWhenVisible(app.buttons["studio-\(id)"], in: app)
+    }
+
+    private func tapWhenVisible(_ element: XCUIElement, in app: XCUIApplication) {
+        for _ in 0..<10 {
+            if element.exists && element.isHittable { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(element.waitForExistence(timeout: 5))
+        XCTAssertTrue(element.isHittable)
+        element.tap()
+    }
+
     private func settleRotation(_ app: XCUIApplication, landscape: Bool) {
         let frame = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             landscape ? app.frame.width > app.frame.height : app.frame.height > app.frame.width

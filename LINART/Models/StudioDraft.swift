@@ -1,5 +1,54 @@
 import Foundation
 
+// Stable navigation identifiers are kept outside the client brief / upload payload.
+enum StudioSection: String, CaseIterable, Identifiable, Hashable, Sendable {
+    case details, photos, links, timing, review
+    var id: String { rawValue }
+    var number: Int { (Self.allCases.firstIndex(of: self) ?? 0) + 1 }
+    var previous: Self? { number > 1 ? Self.allCases[number - 2] : nil }
+    var next: Self? { number < Self.allCases.count ? Self.allCases[number] : nil }
+    var title: String {
+        switch self {
+        case .details: "Your project"
+        case .photos: "Photos of your space"
+        case .links: "Ideas & inspiration"
+        case .timing: "Budget & timing"
+        case .review: "Review & send"
+        }
+    }
+    var symbol: String {
+        switch self {
+        case .details: "house"
+        case .photos: "photo.on.rectangle"
+        case .links: "lightbulb"
+        case .timing: "calendar"
+        case .review: "doc.text.magnifyingglass"
+        }
+    }
+    var subtitle: String {
+        switch self {
+        case .details: "Start with the space you would like to change. A sentence or two is enough."
+        case .photos: "A wide view of the room is a great start. Add inspiration or drawings if you have them."
+        case .links: "Show us what you like. Add a web link or choose ideas from LINART projects."
+        case .timing: "Share a comfortable budget and when you would like to begin. It is fine to be undecided."
+        case .review: "Check your details, make any changes, then choose how to share your brief."
+        }
+    }
+    func hasContent(in draft: StudioDraft) -> Bool {
+        switch self {
+        case .details:
+            [draft.projectType, draft.goals, draft.existingConditions, draft.style,
+             draft.priorities, draft.constraints, draft.other, draft.inquiryEmail]
+                .contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        case .photos: !draft.photos.isEmpty
+        case .links: !draft.references.isEmpty || !draft.ideas.isEmpty
+        case .timing:
+            [draft.investment, draft.timeline].contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        case .review: false // Opening the review never implies a submission.
+        }
+    }
+}
+
 struct StudioReference: Codable, Identifiable, Equatable, Sendable {
     var id = UUID()
     var url: String
@@ -64,6 +113,7 @@ struct StudioDraft: Codable, Equatable, Sendable {
             .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.count
     }
     var isEmpty: Bool { self == StudioDraft() }
+    var hasProjectContent: Bool { StudioSection.allCases.contains { $0.hasContent(in: self) } }
     var displayTitle: String { projectType.isEmpty ? "Your next chapter at home" : projectType }
     var brief: String {
         var sections = [

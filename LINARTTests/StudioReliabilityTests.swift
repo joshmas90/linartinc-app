@@ -5,6 +5,60 @@ import ImageIO
 @testable import LINART
 
 final class StudioReliabilityTests: XCTestCase {
+    @MainActor func testGuidedPlanningResumesWithoutChangingTheBrief() async throws {
+        let name = "LINARTJourneyTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let disk = persistence()
+        let store = StudioStore(persistence: disk, defaults: defaults)
+        await store.load()
+        XCTAssertEqual(store.currentSection, .details)
+        store.draft.goals = "Keep the kitchen notes"
+        store.draft.references = [StudioReference(url: "https://example.com/kitchen", note: "Warm finishes")]
+        await store.flush()
+        let before = store.draft
+        store.move(to: .links)
+        XCTAssertEqual(store.draft, before)
+        XCTAssertFalse(store.hasUnsavedChanges)
+
+        let reopened = StudioStore(persistence: disk, defaults: defaults)
+        await reopened.load()
+        XCTAssertEqual(reopened.currentSection, .links)
+        XCTAssertEqual(reopened.draft, before)
+        reopened.move(to: .review)
+        XCTAssertEqual(reopened.draft, before)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(reopened.draft)) as? [String: Any])
+        XCTAssertNil(json["currentSection"], "Navigation must not become part of a client submission")
+
+        try await reopened.clear()
+        let cleared = StudioStore(persistence: disk, defaults: defaults)
+        await cleared.load()
+        XCTAssertEqual(cleared.currentSection, .details)
+        XCTAssertTrue(cleared.draft.isEmpty)
+    }
+
+    @MainActor func testSkippingOptionalStepsDoesNotCreateAnswersOrAReceipt() async throws {
+        let name = "LINARTJourneyTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let store = StudioStore(persistence: persistence(), defaults: defaults)
+        await store.load()
+        for section in StudioSection.allCases { store.move(to: section) }
+        XCTAssertEqual(store.currentSection, .review)
+        XCTAssertTrue(store.draft.isEmpty)
+        XCTAssertFalse(store.draft.hasProjectContent)
+        XCTAssertNil(store.savedAt)
+        XCTAssertFalse(store.hasUnsavedChanges)
+        let saved = try await store.persistence.load()
+        XCTAssertNil(saved)
+        store.draft.goals = " \n "
+        XCTAssertFalse(store.draft.hasProjectContent)
+        store.draft.ideas = [StudioIdea(id: "kitchen", title: "A kitchen idea")]
+        XCTAssertTrue(store.draft.hasProjectContent)
+        XCTAssertFalse(StudioSection.review.hasContent(in: store.draft))
+        try await store.clear()
+    }
+
     private func persistence() -> StudioPersistence {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("LINARTTests-\(UUID().uuidString)")
         return StudioPersistence(directory: root.appendingPathComponent("draft"), exportsDirectory: root.appendingPathComponent("exports"))
@@ -74,8 +128,8 @@ final class StudioReliabilityTests: XCTestCase {
         for (bytes, maximum) in [(normalized.full, 1600), (normalized.thumbnail, 240)] {
             let source = try XCTUnwrap(CGImageSourceCreateWithData(bytes as CFData, nil))
             let props = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any])
-            XCTAssertLessThanOrEqual(props[kCGImagePropertyPixelWidth] as? Int ?? Int.max, maximum)
-            XCTAssertLessThanOrEqual(props[kCGImagePropertyPixelHeight] as? Int ?? Int.max, maximum)
+            XCTAssertLessThanOrEqual((props[kCGImagePropertyPixelWidth] as? Int) ?? Int.max, maximum)
+            XCTAssertLessThanOrEqual((props[kCGImagePropertyPixelHeight] as? Int) ?? Int.max, maximum)
             XCTAssertNil(props[kCGImagePropertyGPSDictionary])
         }
     }

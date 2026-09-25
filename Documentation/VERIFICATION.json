@@ -1,29 +1,26 @@
 {
   "status": "PASS",
   "checks": [
-    "Xcode object graph and membership: 63 objects, 15 Swift sources, 3 resources",
+    "Xcode object graph and membership: 103 objects, 31 Swift sources, 3 resources",
     "Shared scheme, app/test targets and workspace XML parsed",
     "JSON, XML, Info.plist and privacy manifest validated",
-    "Catalog: 7 projects, 7 services, 40 catalog photo references, 43 image assets",
+    "Catalog: 7 projects, 7 services, 40 catalog photo references, 45 image assets",
     "Opaque 1024 x 1024 app icon and asset catalog file references validated",
-    "No build workflows, dependencies, signing material or generated binaries in package",
-    "Independent OpenStep parser accepted the Xcode project",
-    "Tree-sitter Swift syntax parsing passed for 15 files (not compiler type checking)",
-    "Decoded all 44 bundled images; image size limits and absence of EXIF confirmed",
-    "Inquiry service, timing and contact values match current website PHP handler exactly",
-    "All project/service inquiry actions map to allowed backend values"
+    "No dependencies, signing material or generated binaries in package",
+    "SHA-256 manifest verified for 157 files",
+    "Tree-sitter Swift parsing passed for all 7 changed Swift files; this is not type checking"
   ],
-  "file_count": 120,
+  "file_count": 158,
   "build_initiated": false,
   "xctest_executed": false,
-  "date": "2026-09-23",
-  "file_count_basis": "Final source package, including this report and MANIFEST.sha256; excludes .git",
-  "environment": "Windows; static audit only",
-  "website_reference_commit": "45ee6b05b0148a226f7a97717df6aa25a35d5c29",
+  "date": "2026-09-25",
+  "revision": "Guided My Project",
+  "scope": "Static source and package verification only",
+  "environment": "Linux workspace; no Xcode or Apple SDK",
+  "changed_swift_files_parsed": 7,
   "limitations": [
-    "No Xcode build or Apple compiler type checking",
-    "No simulator or device run",
-    "Included XCTest suite not executed",
-    "No live form POST, test email, signing or distribution"
+    "Apple compiler type checking and native iPhone/iPad tests were not run.",
+    "Updated XCTest and UI tests must run in the existing Xcode validation workflows.",
+    "No live inquiry, sign-in, submission, signing, or app distribution was performed."
   ]
 }
