@@ -37,7 +37,12 @@ struct MoreView: View {
                     Rectangle().fill(Brand.brass).frame(width: 44, height: 1)
                 }.frame(maxWidth: .infinity).padding(28)
                     .background(Brand.line.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
-            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, PremiumLayout.tabBarClearance)
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
         }.background(Brand.cream)
             .navigationTitle("More").navigationBarTitleDisplayMode(.inline)
     }
@@ -54,7 +59,12 @@ struct ContactView: View {
                     .foregroundStyle(Brand.secondary).lineSpacing(5)
                 Button("Start a Project Inquiry") { store.startInquiry() }.buttonStyle(PrimaryButtonStyle())
                 ContactActions()
-            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, PremiumLayout.tabBarClearance)
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
         }.background(Brand.cream)
             .navigationTitle("Contact Us").navigationBarTitleDisplayMode(.inline)
     }
@@ -88,8 +98,13 @@ struct SettingsView: View {
             } header: { Text("Saved on this device") } footer: {
                 Text("Removes saved ideas, checklist progress, the inquiry draft and private project photos and notes. Inquiries already sent to LINART are unaffected.")
             }
-        }.scrollContentBackground(.hidden).background(Brand.cream)
-            .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
+        }
+        .scrollContentBackground(.hidden)
+        .background(Brand.cream)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: PremiumLayout.tabBarClearance)
+        }
+        .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
             .confirmationDialog("Clear data saved in this app?", isPresented: $confirmReset, titleVisibility: .visible) {
                 Button("Clear local data", role: .destructive) {
                     Task {
@@ -139,7 +154,12 @@ struct AboutView: View {
                 NavigationLink("Manage saved app data") { SettingsView() }
                 Text("LINART · Version \(version)")
                     .font(.caption).foregroundStyle(.secondary)
-            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, PremiumLayout.tabBarClearance)
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
         }
         .background(Brand.cream)
         .navigationTitle("About LINART").navigationBarTitleDisplayMode(.inline)
@@ -151,27 +171,99 @@ struct ServiceAreasView: View {
     @EnvironmentObject private var store: AppStore
 
     var body: some View {
-        List {
-            Section {
-                Text("New Jersey is home. So is the work.").font(.system(.title, design: .serif))
-                Text("Most of our work is concentrated across these five counties, with select projects extending through Central and South Jersey.")
+        ScrollView {
+            VStack(alignment: .leading, spacing: PremiumLayout.lg) {
+                VStack(alignment: .leading, spacing: PremiumLayout.sm) {
+                    SectionHeading(eyebrow: "New Jersey", title: "Close to home. Close to the work.")
+                    Text("Most LINART projects are concentrated across our core counties, with select work extending through Central and South Jersey.")
+                        .foregroundStyle(Brand.secondary)
+                        .lineSpacing(4)
+                }
+
+                ServiceAreaGroup(
+                    eyebrow: "Primary coverage",
+                    title: "Core service area",
+                    counties: Company.coreCounties,
+                    emphasized: true
+                )
+
+                ServiceAreaGroup(
+                    eyebrow: "Select projects",
+                    title: "Outer project reach",
+                    counties: Company.extendedCounties
+                )
+
+                ServiceAreaGroup(
+                    eyebrow: "Availability varies",
+                    title: "Occasional projects",
+                    counties: Company.occasionalCounties
+                )
+
+                VStack(alignment: .leading, spacing: PremiumLayout.sm) {
+                    Rectangle().fill(Brand.brass).frame(width: 42, height: 2)
+                    Eyebrow(title: "Just outside the map?")
+                    Text("Tell us where you are.")
+                        .font(.system(.title2, design: .serif))
+                        .foregroundStyle(Brand.ink)
+                    Text("Project type, schedule and location all matter. If you're near the edge of our service area, we'll tell you directly whether the project is a fit.")
+                        .foregroundStyle(Brand.secondary)
+                        .lineSpacing(4)
+                    Button("Discuss your location") { store.startInquiry() }
+                        .buttonStyle(PrimaryButtonStyle())
+                }
             }
-            Section("Core service area") {
-                ForEach(Company.coreCounties, id: \.self) { Label("\($0) County", systemImage: "mappin") }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, PremiumLayout.tabBarClearance)
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Brand.cream)
+        .navigationTitle("Service areas")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct ServiceAreaGroup: View {
+    let eyebrow: String
+    let title: String
+    let counties: [String]
+    var emphasized = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PremiumLayout.md) {
+            VStack(alignment: .leading, spacing: 4) {
+                Eyebrow(title: eyebrow)
+                Text(title)
+                    .font(.system(.title3, design: .serif))
+                    .foregroundStyle(Brand.ink)
             }
-            Section("Outer project reach") {
-                ForEach(Company.extendedCounties, id: \.self) { Text("\($0) County") }
-            }
-            Section("Occasional projects · availability varies") {
-                ForEach(Company.occasionalCounties, id: \.self) { Text("\($0) County") }
-            }
-            Section {
-                Text("Near the edge of our service area? Tell us where you are and what you are considering, and we’ll discuss whether the project is a fit.")
-                Button("Discuss your location") { store.startInquiry() }
+
+            VStack(spacing: 0) {
+                ForEach(Array(counties.enumerated()), id: \.element) { index, county in
+                    HStack(spacing: PremiumLayout.sm) {
+                        if emphasized {
+                            Image(systemName: "mappin")
+                                .font(.subheadline)
+                                .foregroundStyle(Brand.bronze)
+                                .frame(width: 18)
+                                .accessibilityHidden(true)
+                        }
+                        Text("\(county) County")
+                            .font(.body)
+                            .foregroundStyle(Brand.ink)
+                        Spacer()
+                    }
+                    .frame(minHeight: 48)
+                    if index < counties.count - 1 {
+                        Divider().overlay(Brand.line)
+                    }
+                }
             }
         }
-        .scrollContentBackground(.hidden).background(Brand.cream)
-        .navigationTitle("Service areas").navigationBarTitleDisplayMode(.inline)
+        .padding(PremiumLayout.md)
+        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Brand.line))
     }
 }
 
@@ -199,7 +291,11 @@ struct PrivacyView: View {
             }
             Section("Contact") { ContactActions() }
         }
-        .scrollContentBackground(.hidden).background(Brand.cream)
+        .scrollContentBackground(.hidden)
+        .background(Brand.cream)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear.frame(height: PremiumLayout.tabBarClearance)
+        }
         .navigationTitle("Privacy").navigationBarTitleDisplayMode(.inline)
     }
 }
