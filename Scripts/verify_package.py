@@ -165,8 +165,13 @@ def verify(root, archive=None):
     manifest_path = root / 'MANIFEST.sha256'
     if manifest_path.exists():
         manifest = {}
-        for line in manifest_path.read_text().splitlines():
-            digest, filename = line.split('  ', 1)
+        for line_number, raw_line in enumerate(manifest_path.read_text().splitlines(), start=1):
+            if not raw_line.strip():
+                continue
+            require('  ' in raw_line, f'Malformed source manifest line {line_number}: expected SHA-256, two spaces, and filename')
+            digest, filename = raw_line.split('  ', 1)
+            require(re.fullmatch(r'[0-9a-f]{64}', digest) is not None, f'Malformed SHA-256 on source manifest line {line_number}')
+            require(filename and filename not in manifest, f'Invalid or duplicate filename on source manifest line {line_number}')
             manifest[filename] = digest
         payload = {path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in files if path != manifest_path}
         require(payload == manifest, 'Source file manifest mismatch')
