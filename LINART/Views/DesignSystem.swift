@@ -83,11 +83,12 @@ struct MenuRow: View {
     let title: String
     let subtitle: String
     let symbol: String
+    @ScaledMetric(relativeTo: .title2) private var symbolWidth: CGFloat = 30
 
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: symbol).font(.title2).foregroundStyle(Brand.bronze)
-                .frame(width: 30).accessibilityHidden(true)
+                .frame(width: symbolWidth).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 5) {
                 Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
                 if !subtitle.isEmpty {

@@ -37,6 +37,9 @@ final class PlanningFlowTests: XCTestCase {
         }
         XCTAssertTrue(next.isHittable); next.tap()
         XCTAssertTrue(app.staticTexts["Enter your name, up to 120 characters."].waitForExistence(timeout: 5))
+        let invalidName = app.textFields["Full name, required"]
+        let revealed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in invalidName.isHittable }, object: invalidName)
+        XCTAssertEqual(XCTWaiter.wait(for: [revealed], timeout: 5), .completed)
         capture("05-inquiry-validation", app)
         app.buttons["Close"].tap()
         app.navigationBars.buttons.element(boundBy: 0).tap()

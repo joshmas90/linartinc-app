@@ -8,6 +8,7 @@ struct InquiryView: View {
     @State private var step = 0
     @State private var errors: [String: String] = [:]
     @State private var errorMessage: String?
+    @State private var validationAttempt = 0
     @State private var isSending = false
     @State private var sent = false
     @State private var consent = false
@@ -101,9 +102,17 @@ struct InquiryView: View {
                 }
             }.disabled(isSending).scrollContentBackground(.hidden).background(Brand.cream).scrollDismissesKeyboard(.interactively)
                 .onChange(of: step) { _, _ in proxy.scrollTo("top", anchor: .top) }
-                .onChange(of: focus) { _, field in if let field { withAnimation { proxy.scrollTo(field, anchor: .center) } } }
+                .task(id: validationAttempt) { @MainActor in
+                    guard validationAttempt > 0, let first = orderedFields.first(where: { errors[$0] != nil }) else { return }
+                    // Reveal a lazy Form row before assigning keyboard focus.
+                    // Otherwise iPad can reject focus on an offscreen field.
+                    await Task.yield()
+                    proxy.scrollTo(first, anchor: .center)
+                    do { try await Task.sleep(for: .milliseconds(200)) } catch { return }
+                    focus = first
+                }
                 .onChange(of: errorMessage) { _, message in
-                    if let message { UIAccessibility.post(notification: .announcement, argument: message); if focus == nil { proxy.scrollTo("error", anchor: .center) } }
+                    if let message { UIAccessibility.post(notification: .announcement, argument: message); if errors.isEmpty { proxy.scrollTo("error", anchor: .center) } }
                 }
         }
     }
@@ -120,7 +129,8 @@ struct InquiryView: View {
     private func revealErrors() {
         guard let first = orderedFields.first(where: { errors[$0] != nil }) else { return }
         step = ["name", "email", "phone", "city"].contains(first) ? 0 : 1
-        Task { @MainActor in await Task.yield(); focus = first }
+        focus = nil
+        validationAttempt += 1
         errorMessage = errors[first]
     }
     private func advance() {
