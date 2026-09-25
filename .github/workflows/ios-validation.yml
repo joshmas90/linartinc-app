@@ -1,30 +1,56 @@
 name: iOS validation
 on:
+  push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
+
 permissions:
   contents: read
+
 concurrency:
   group: ios-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   validate:
+    name: ${{ matrix.label }}
     runs-on: macos-26
-    timeout-minutes: 40
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        family: [iPhone, iPad]
+        include:
+          - family: iPhone
+            label: iPhone certification
+            run_units: "1"
+            run_backend: "1"
+          - family: iPad
+            label: iPad regression
+            run_units: "0"
+            run_backend: "0"
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       SIMULATOR_FAMILY: ${{ matrix.family }}
+      SIMULATOR_RUNTIME_MAJOR: 26
+      RUN_BACKEND_TESTS: ${{ matrix.run_backend }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Validate source and run regression tests
-        run: bash Scripts/validate_ios.sh
-      - name: Check upload validation
-        run: node --test Backend/*.test.mjs
-      - name: Preserve test results
+
+      - name: Preflight package and simulator
+        run: bash Scripts/ci_preflight.sh
+
+      - name: Compile app and tests once
+        run: bash Scripts/build_for_testing.sh
+
+      - name: Run native unit tests
+        if: matrix.run_units == '1'
+        run: TEST_SUITE=unit bash Scripts/test_without_building.sh
+
+      - name: Run full planning UI regression
+        run: TEST_SUITE=ui UI_TEST_RETRIES=1 bash Scripts/test_without_building.sh
+
+      - name: Preserve validation results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -32,11 +58,22 @@ jobs:
           path: |
             build/*.log
             build/*.json
+            build/*.env
             build/*.xcresult
           retention-days: 14
+
       - name: Export screen captures
         if: always()
-        run: xcrun xcresulttool export attachments --path "build/${SIMULATOR_FAMILY}-TestResults.xcresult" --output-path build/screenshots
+        shell: bash
+        run: |
+          mkdir -p build/screenshots
+          shopt -s nullglob
+          for result in build/${SIMULATOR_FAMILY}-ui-attempt*-TestResults.xcresult; do
+            name="$(basename "$result" .xcresult)"
+            mkdir -p "build/screenshots/$name"
+            xcrun xcresulttool export attachments --path "$result" --output-path "build/screenshots/$name" || true
+          done
+
       - name: Preserve screen captures
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
