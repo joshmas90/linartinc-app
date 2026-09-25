@@ -70,6 +70,12 @@ private struct BrandIntroductionView: View {
 
     var body: some View {
         GeometryReader { bounds in
+            // Keep the complete square artwork, with room for the native copy
+            // on smaller phones and restrained margins on larger displays.
+            let portraitPhotoSide = max(0, min(bounds.size.width - 48,
+                max(180, min(560, min(bounds.size.height * 0.48, bounds.size.height - 350)))))
+            let landscapePhotoSide = max(0, min(560,
+                min(bounds.size.width * 0.54 - 24, bounds.size.height - 24)))
             if bounds.size.width > bounds.size.height && bounds.size.width > 600
                 && !dynamicTypeSize.isAccessibilitySize {
                 HStack(spacing: 0) {
@@ -82,13 +88,16 @@ private struct BrandIntroductionView: View {
                     }
                     .frame(width: bounds.size.width * 0.46)
                     photograph
+                        .frame(width: landscapePhotoSide, height: landscapePhotoSide)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             } else {
                 ScrollView {
                     VStack(spacing: 0) {
                         wordmark
                         photograph
-                            .frame(height: max(180, min(560, bounds.size.height * 0.48)))
+                            .frame(width: portraitPhotoSide, height: portraitPhotoSide)
+                            .frame(maxWidth: .infinity)
                         message
                         Spacer(minLength: 0)
                     }
@@ -188,15 +197,15 @@ private struct BrandIntroductionView: View {
 
     private var photograph: some View {
         GeometryReader { bounds in
-            Image("kitchen-remodeling")
+            Image("welcome-bathroom")
                 .resizable()
                 .scaledToFill()
                 .frame(width: bounds.size.width, height: bounds.size.height)
-                .scaleEffect(motionEnabled ? (revealed ? 1.015 : 1.075) : 1)
-                .animation(motion(.timingCurve(0.16, 1, 0.3, 1, duration: 2.65).delay(0.35)), value: revealed)
-                .blur(radius: contentVisible ? 0 : 6)
+                .scaleEffect(motionEnabled ? (revealed ? 1 : 1.055) : 1)
+                .animation(motion(.timingCurve(0.16, 1, 0.3, 1, duration: 1.95).delay(0.25)), value: revealed)
+                .blur(radius: contentVisible ? 0 : 3)
                 .opacity(contentVisible ? 1 : 0.35)
-                .animation(motion(.easeOut(duration: 1.25).delay(0.35)), value: revealed)
+                .animation(motion(.easeOut(duration: 1).delay(0.25)), value: revealed)
                 .clipped()
                 .mask(alignment: .top) {
                     // An oversized alpha gradient moves down through the frame.
@@ -213,7 +222,7 @@ private struct BrandIntroductionView: View {
                     ], startPoint: .top, endPoint: .bottom)
                     .frame(height: bounds.size.height * 2.2)
                     .offset(y: contentVisible ? 0 : -bounds.size.height * 2.2)
-                    .animation(motion(.easeInOut(duration: 1.45).delay(0.35)), value: revealed)
+                    .animation(motion(.easeInOut(duration: 1.20).delay(0.25)), value: revealed)
                 }
         }
         .accessibilityHidden(true)
@@ -228,13 +237,13 @@ private struct BrandIntroductionView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .opacity(contentVisible ? 1 : 0)
                 .offset(y: contentVisible ? 0 : 7)
-                .animation(motion(.easeOut(duration: 0.6).delay(0.85)), value: revealed)
+                .animation(motion(.easeOut(duration: 0.55).delay(1.45)), value: revealed)
             Text("NEW JERSEY")
                 .font(.caption.weight(.medium))
                 .tracking(3)
                 .foregroundStyle(Brand.secondary)
                 .opacity(contentVisible ? 1 : 0)
-                .animation(motion(.easeOut(duration: 0.55).delay(1.15)), value: revealed)
+                .animation(motion(.easeOut(duration: 0.45).delay(1.70)), value: revealed)
         }
         .multilineTextAlignment(.center)
         .padding(.horizontal, 28)
