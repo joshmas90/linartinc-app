@@ -42,16 +42,6 @@ The Studio code was added after the original static audit report. Its photos, lo
 
 The reference-inspired app redesign and clipped-hero fix are documented in `Documentation/PREMIUM-REFERENCE-REVISION.md`. Syntax and package checks were performed on Linux; this revision still needs an Xcode compile and on-device visual review. No automatic build or Apple upload was started.
 
-## Automatic Codemagic builds
-
-Pushes and merges to `main` now trigger `linart-app-store-upload` (shown as **LINART - Upload to App Store Connect (main pushes)**), provided the Codemagic GitHub webhook is connected. The workflow signs the app, verifies its identity and build number, and uploads it to App Store Connect using the existing integration. New pushes cancel older webhook-triggered builds on the same branch. Other branches, pull-request updates and tags do not start this upload workflow. The unsigned iOS validation workflow remains manual.
-
-The workflow uses Codemagic's increasing `PROJECT_BUILD_NUMBER`. It preserves `submit_to_testflight: false` and `submit_to_app_store: false`: the IPA is uploaded to Apple, but this configuration does not automatically submit for beta review, assign tester groups or submit for public App Store review. Apple processing and tester access still apply.
-
-Do not add `[skip ci]` or `[ci skip]` to ordinary app-update commits or merge messages; Codemagic treats either marker as an instruction to skip automatic builds. Use one only when intentionally suppressing a build.
-
-In the LINART application's Codemagic settings, check **Webhooks** for a connected GitHub webhook and a recent successful push delivery. If missing, use **Create webhook** (or **Update webhook** for an existing connection). Validate the setup by checking that a push to `main` creates a build for the same commit. YAML configuration alone does not prove a webhook was delivered.
-
 ## Verification status
 
 Read `Documentation/AUDIT.md` and `Documentation/VERIFICATION.json` for the performed checks and their limits. The project was assembled and statically audited on Windows. **No Xcode build, simulator run, XCTest execution, signing, TestFlight upload or App Store submission was initiated.** The included XCTest cases use a mock URL protocol and do not send live inquiries; they are available for a later authorized Xcode test run.
