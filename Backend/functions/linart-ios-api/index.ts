@@ -7,7 +7,12 @@ const headers = { apikey: service, Authorization: `Bearer ${service}` };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 async function api(path: string, options: RequestInit = {}) {
   const response = await fetch(`${base}/${path}`, { ...options, headers: { ...headers, "Content-Type": "application/json", ...options.headers } });
-  if (!response.ok) throw new APIError(response.status === 409 ? 409 : 503, "The service could not complete this request. Your local Studio is safe.");
+  if (!response.ok) {
+    const failure = await response.json().catch(() => ({}));
+    if (failure.message === "Submission limit reached. Remove unused app submissions or try tomorrow.") throw new APIError(429, failure.message);
+    if (failure.message === "Account deletion is pending") throw new APIError(409, "Your account deletion is pending. New uploads are disabled.");
+    throw new APIError(response.status === 409 ? 409 : 503, "The service could not complete this request. Your local Studio is safe.");
+  }
   const body = await response.text(); return body ? JSON.parse(body) : null;
 }
 async function authenticate(req: Request) {
@@ -35,6 +40,17 @@ Deno.serve(async req => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action");
     const id = url.searchParams.get("id") ?? "";
+    if (req.method === "GET" && action === "deletion-status") {
+      const rows = await api(`rest/v1/linart_ios_deletion_requests?user_id=eq.${user.id}&select=id,requested_at,uploads_removed_at,completed_at`);
+      return json({ request: rows[0] ?? null });
+    }
+    if (req.method === "DELETE" && action === "account") {
+      const request = await api("rest/v1/rpc/linart_ios_request_deletion", { method: "POST", body: JSON.stringify({ p_user: user.id }) });
+      const rows = await api(`rest/v1/linart_ios_submissions?user_id=eq.${user.id}&select=*`);
+      for (const row of rows) await removeSubmission(row, user.id);
+      await api(`rest/v1/linart_ios_deletion_requests?user_id=eq.${user.id}`, { method: "PATCH", body: JSON.stringify({ uploads_removed_at: new Date().toISOString() }) });
+      return json({ id: request.id, requested_at: request.requested_at });
+    }
     if (req.method === "GET" && action === "receipts") {
       const rows = await api(`rest/v1/linart_ios_submissions?user_id=eq.${user.id}&select=id,submitted_at,status,created_at&order=created_at.desc&limit=100`);
       return json({ receipts: rows });
@@ -81,10 +97,7 @@ Deno.serve(async req => {
     }
     if (req.method === "DELETE" && action === "delete") {
       const submission = await owned(id, user.id);
-      await api(`rest/v1/linart_ios_submissions?id=eq.${id}&user_id=eq.${user.id}`, { method: "PATCH", body: JSON.stringify({ status: "deleting" }) });
-      const paths = submission.payload.photos.map((photo: { id: string }) => `${user.id}/${id}/${photo.id}.jpg`);
-      if (paths.length) await api(`storage/v1/object/${bucket}`, { method: "DELETE", body: JSON.stringify({ prefixes: paths }) });
-      await api(`rest/v1/linart_ios_submissions?id=eq.${id}&user_id=eq.${user.id}`, { method: "DELETE" });
+      await removeSubmission(submission, user.id);
       return json({ ok: true });
     }
     throw new APIError(405, "Unsupported request.");
@@ -95,3 +108,11 @@ Deno.serve(async req => {
     return json({ error: "The service is temporarily unavailable. Your local Studio is safe." }, 503);
   }
 });
+
+async function removeSubmission(submission: { id: string; payload: { photos: Array<{ id: string }> } }, user: string) {
+  const id = submission.id;
+  await api(`rest/v1/linart_ios_submissions?id=eq.${id}&user_id=eq.${user}`, { method: "PATCH", body: JSON.stringify({ status: "deleting" }) });
+  const paths = submission.payload.photos.map(photo => `${user}/${id}/${photo.id}.jpg`);
+  if (paths.length) await api(`storage/v1/object/${bucket}`, { method: "DELETE", body: JSON.stringify({ prefixes: paths }) });
+  await api(`rest/v1/linart_ios_submissions?id=eq.${id}&user_id=eq.${user}`, { method: "DELETE" });
+}

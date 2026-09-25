@@ -193,7 +193,8 @@ struct PrivacyView: View {
             }
             Section("Optional direct Studio submissions") {
                 Text("When you sign in and choose Send to LINART, your email-verified account, project answers, links, saved ideas and selected photo copies are processed by Supabase for LINART. App submissions use separate private storage and app-specific database tables. Nothing is uploaded during ordinary local planning.")
-                Text("Sign-in emails are sent through LINART’s Hostinger email service. Sign-in tokens are stored in the device Keychain. Sign out to remove this device’s saved session. Clear local data does not delete a cloud submission; use Send to LINART → Your app submissions to delete it and its uploaded photos.")
+                Text("Sign-in emails are sent through LINART’s Hostinger email service. Sign-in tokens are stored in the device Keychain and may survive reinstalling the app. Sign out to remove this device’s saved session. Clear local data does not delete a cloud submission; use Send to LINART → Your app submissions to delete it and its uploaded photos.")
+                Text("To delete your account, choose Send to LINART → Delete my app account. App uploads are removed immediately and new uploads are disabled. LINART completes the account-deletion request within 7 days and confirms by email, reviewing any shared LINART records separately. Your local Studio is kept until you clear it.")
                 Text("A receipt confirms server storage only. LINART may already have downloaded a copy when you request deletion. Email services@linartinc.com for help with account records or information already received by the team.")
             }
             Section("Contact") { ContactActions() }

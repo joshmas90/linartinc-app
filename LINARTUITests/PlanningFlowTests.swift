@@ -25,14 +25,16 @@ final class PlanningFlowTests: XCTestCase {
         capture("04-review-landscape", app)
         XCUIDevice.shared.orientation = .portrait
         tab("More", app)
-        app.buttons["Contact Us"].tap()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Contact Us,")).firstMatch.tap()
         app.buttons["Start a Project Inquiry"].tap()
         app.buttons["Continue"].tap()
         XCTAssertTrue(app.staticTexts["Enter your name, up to 120 characters."].waitForExistence(timeout: 5))
         capture("05-inquiry-validation", app)
         app.buttons["Close"].tap()
         app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.buttons["Settings"].tap()
+        let settings = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Settings,")).firstMatch
+        if !settings.isHittable { app.swipeUp() }
+        settings.tap()
         capture("06-settings", app)
         app.buttons["Clear all local app data"].tap()
         app.buttons["Clear local data"].tap()
@@ -43,7 +45,12 @@ final class PlanningFlowTests: XCTestCase {
     }
     private func tab(_ name: String, _ app: XCUIApplication) {
         let tab = app.tabBars.buttons[name]
-        if tab.exists { tab.tap() } else { app.buttons[name].firstMatch.tap() }
+        if tab.exists { tab.tap() }
+        else {
+            // iPad floating tabs may be exposed as cells after rotation on iOS 26.
+            let target = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", name)).firstMatch
+            XCTAssertTrue(target.waitForExistence(timeout: 5)); target.tap()
+        }
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
         let screenshot = XCTAttachment(screenshot: app.screenshot())

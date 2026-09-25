@@ -6,6 +6,7 @@ struct CloudStudioView: View {
     @State private var email = ""
     @State private var consent = false
     @State private var deleting: CloudReceipt?
+    @State private var deleteAccount = false
     var body: some View {
         Form {
             Section {
@@ -19,7 +20,7 @@ struct CloudStudioView: View {
                     Text("\(studio.draft.photos.count) photos · \(studio.draft.references.count) links · \(studio.draft.ideas.count) portfolio ideas")
                     Toggle("I agree to send this brief and the selected photos to LINART.", isOn: $consent)
                     Button("Send to LINART", systemImage: "paperplane") { cloud.send(draft: studio.draft, persistence: studio.persistence) }
-                        .disabled(!consent || !studio.isReady || studio.isImporting || studio.draft.isEmpty)
+                        .disabled(!consent || !studio.isReady || studio.isImporting || studio.draft.isEmpty || cloud.deletionRequest != nil)
                     Text("A receipt confirms secure storage, not an appointment, estimate or response time. Retrying an unchanged brief uses the same submission reference.").font(.caption).foregroundStyle(Brand.secondary)
                 }
                 if let receipt = cloud.lastReceipt {
@@ -40,6 +41,14 @@ struct CloudStudioView: View {
                     }
                     Text("You can remove submitted or unfinished app uploads here. Website inquiries are separate.").font(.caption).foregroundStyle(Brand.secondary)
                 }
+                Section("Account deletion") {
+                    if let request = cloud.deletionRequest {
+                        Label("Deletion requested", systemImage: "checkmark.circle")
+                        Text("Reference: \(request.id.uuidString)").font(.caption.monospaced()).textSelection(.enabled)
+                    }
+                    Button(cloud.deletionRequest == nil ? "Delete my app account" : "Retry upload removal", role: .destructive) { deleteAccount = true }
+                    Text("Your app uploads are removed immediately. LINART completes account deletion within 7 days and confirms by email. Existing website records are reviewed separately; your local Studio stays on this device.").font(.caption).foregroundStyle(Brand.secondary)
+                }
             } else {
                 Section("Verify your email") {
                     TextField("Email address", text: $email).textContentType(.emailAddress).keyboardType(.emailAddress).textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -53,6 +62,11 @@ struct CloudStudioView: View {
         }.disabled(cloud.busy).scrollContentBackground(.hidden).background(Brand.cream)
             .navigationTitle("Send to LINART").navigationBarTitleDisplayMode(.inline)
             .onAppear { if email.isEmpty { email = studio.draft.inquiryEmail } }
+            .task { if cloud.email != nil { cloud.refresh() } }
+            .alert("Request account deletion?", isPresented: $deleteAccount) {
+                Button("Delete uploads & request deletion", role: .destructive) { cloud.requestAccountDeletion() }
+                Button("Cancel", role: .cancel) { }
+            } message: { Text("All app uploads will be permanently removed. LINART will finish deleting your account within 7 days. You will not be able to send new briefs while this request is pending.") }
             .confirmationDialog("Delete this app submission and its uploaded photos?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
                 Button("Delete submission", role: .destructive) { if let receipt = deleting { cloud.remove(receipt) }; deleting = nil }
             } message: { Text("This removes the cloud copy. It leaves your local Studio and website inquiries unchanged. Copies already downloaded by a recipient cannot be recalled.") }

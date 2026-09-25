@@ -25,7 +25,7 @@ jobs:
       - name: Validate source and run regression tests
         run: bash Scripts/validate_ios.sh
       - name: Check upload validation
-        run: node --test Backend/validation.test.mjs
+        run: node --test Backend/*.test.mjs
       - name: Preserve test results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

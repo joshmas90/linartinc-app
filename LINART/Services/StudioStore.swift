@@ -92,7 +92,7 @@ final class StudioStore: ObservableObject {
             guard token == generation else { return }
             suppressChanges = true; draft = envelope.draft; suppressChanges = false
             savedAt = envelope.savedAt; state = .ready; notice = "Recovered the previous saved copy. The unreadable file was preserved."
-        } catch { state = .unavailable("Recovery was not possible. Your original files are still intact. \(error.localizedDescription)") }
+        } catch { guard token == generation else { return }; state = .unavailable("Recovery was not possible. Your original files are still intact. \(error.localizedDescription)") }
     }
 
     func clear() async throws {

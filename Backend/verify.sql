@@ -27,5 +27,31 @@ begin
   if has_table_privilege('anon','public.linart_ios_submissions','SELECT') then raise exception 'Anonymous read grant present'; end if;
   if (select public from storage.buckets where id='linart-ios-studio') then raise exception 'Bucket is public'; end if;
 end $$;
-select 'PASS: owner isolation, no anonymous/client writes, receipt idempotency, private bucket; fixture changes rolled back' as verification;
+do $$ declare ids record; first_request jsonb; repeated_request jsonb; blocked boolean := false;
+begin
+  select * into ids from ios_test_ids;
+  for i in 1..4 loop
+    perform public.linart_ios_begin(gen_random_uuid(),ids.owner_id,'{"photos":[]}'::jsonb,repeat('c',64));
+  end loop;
+  begin perform public.linart_ios_begin(gen_random_uuid(),ids.owner_id,'{"photos":[]}'::jsonb,repeat('d',64));
+  exception when others then blocked := sqlerrm like 'Submission limit reached%'; end;
+  if not blocked then raise exception 'Daily quota was not enforced'; end if;
+  first_request := public.linart_ios_request_deletion(ids.owner_id);
+  repeated_request := public.linart_ios_request_deletion(ids.owner_id);
+  if first_request->>'id' <> repeated_request->>'id' then raise exception 'Deletion request is not idempotent'; end if;
+  if exists(select 1 from public.linart_ios_submissions where user_id=ids.owner_id and status<>'deleting') then raise exception 'Deletion did not close own uploads'; end if;
+  if (select status from public.linart_ios_submissions where id=ids.other_submission_id) <> 'draft' then raise exception 'Deletion touched another user'; end if;
+  blocked := false;
+  begin perform public.linart_ios_begin(gen_random_uuid(),ids.owner_id,'{"photos":[]}'::jsonb,repeat('e',64));
+  exception when others then blocked := sqlerrm='Account deletion is pending'; end;
+  if not blocked then raise exception 'Deletion did not block new uploads'; end if;
+  if not exists(select 1 from auth.users where id=ids.owner_id) then raise exception 'Shared identity was removed'; end if;
+  if has_function_privilege('authenticated','public.linart_ios_request_deletion(uuid)','EXECUTE') then raise exception 'Client can call privileged deletion'; end if;
+end $$;
+set local role authenticated;
+do $$ begin
+  if (select count(*) from public.linart_ios_deletion_requests where user_id in (select owner_id from ios_test_ids union all select other_id from ios_test_ids)) <> 1 then raise exception 'Deletion request owner visibility failed'; end if;
+end $$;
+reset role;
+select 'PASS: owner isolation, no anonymous/client writes, stable receipts, private bucket, quota, deletion idempotency/isolation and upload block; fixture changes rolled back' as verification;
 rollback;

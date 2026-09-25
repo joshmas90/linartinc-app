@@ -42,6 +42,12 @@ struct CloudReceipt: Codable, Identifiable, Sendable {
     var status: String?
     var created_at: String?
 }
+struct CloudDeletionRequest: Codable, Sendable {
+    let id: UUID
+    let requested_at: String
+    var uploads_removed_at: String?
+    var completed_at: String?
+}
 private struct CloudSession: Codable, Sendable {
     let accessToken: String
     let refreshToken: String
@@ -127,15 +133,16 @@ actor CloudStudioClient {
         guard token == generation else { throw CancellationError() }
         try save(refreshed); return refreshed
     }
-    func signOut() async throws {
+    func signOut() async throws -> Bool {
         generation += 1; refreshTask?.cancel(); refreshTask = nil
         let old = session
         session = nil; loaded = true
         for name in ["session", "verifier", "pending"] { try CloudKeychain.write(nil, account: name) }
         if let old {
             do { _ = try await request(url: Self.base.appendingPathComponent("auth/v1/logout").appending(queryItems: [URLQueryItem(name: "scope", value: "local")]), method: "POST", bearer: old.accessToken) }
-            catch { throw CloudStudioError.message("Signed out on this device. Server sign-out could not be confirmed while offline; the session expires automatically.") }
+            catch { return false }
         }
+        return true
     }
     func submit(draft: StudioDraft, persistence: StudioPersistence) async throws -> CloudReceipt {
         let auth = try await validSession(), token = generation
@@ -177,6 +184,17 @@ actor CloudStudioClient {
            let pending = try? JSONDecoder().decode(CloudPending.self, from: bytes), pending.id == receipt.id {
             try CloudKeychain.write(nil, account: "pending")
         }
+    }
+    func requestAccountDeletion() async throws -> CloudDeletionRequest {
+        let auth = try await validSession()
+        let data = try await call(action: "account", method: "DELETE", session: auth)
+        try CloudKeychain.write(nil, account: "pending")
+        return try JSONDecoder().decode(CloudDeletionRequest.self, from: data)
+    }
+    func deletionStatus() async throws -> CloudDeletionRequest? {
+        struct Status: Decodable { let request: CloudDeletionRequest? }
+        let auth = try await validSession()
+        return try JSONDecoder().decode(Status.self, from: await call(action: "deletion-status", method: "GET", session: auth)).request
     }
     private func call(action: String, method: String, id: UUID? = nil, photo: UUID? = nil, body: Data? = nil, contentType: String = "application/json", session: CloudSession) async throws -> Data {
         var query = [URLQueryItem(name: "action", value: action)]
