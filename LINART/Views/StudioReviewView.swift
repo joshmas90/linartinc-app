@@ -92,8 +92,8 @@ struct StudioReviewView: View {
         previewCard(.photos) {
             if studio.draft.photos.isEmpty { optionalNote("No photos added. You can add these later.") }
             ForEach(studio.draft.photos) { photo in
-                HStack(alignment: .top, spacing: 14) {
-                    StudioThumbnail(photo: photo)
+                VStack(alignment: .leading, spacing: 12) {
+                    StudioThumbnail(photo: photo, expanded: true)
                     VStack(alignment: .leading, spacing: 5) {
                         Text(photo.purpose).font(.subheadline.weight(.medium))
                         if !photo.note.isEmpty { Text(photo.note).font(.subheadline).foregroundStyle(Brand.secondary) }

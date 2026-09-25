@@ -111,7 +111,7 @@ enum StudioPDF {
         (text as NSString).draw(in: rect, withAttributes: [.font: font, .foregroundColor: UIColor(white: 0.16, alpha: 1)])
     }
     private static func footer(pageNumber: Int, total: Int) {
-        draw("LINART  ·  PROJECT STUDIO", rect: CGRect(x: 46, y: 749, width: 370, height: 18), size: 9)
+        draw("LINART  ·  PROJECT BRIEF", rect: CGRect(x: 46, y: 749, width: 370, height: 18), size: 9)
         draw("\(pageNumber) / \(total)", rect: CGRect(x: 516, y: 749, width: 50, height: 18), size: 9)
     }
 }

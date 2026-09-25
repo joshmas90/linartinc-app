@@ -320,17 +320,25 @@ struct StudioField: View {
 }
 struct StudioThumbnail: View {
     let photo: StudioPhoto
+    var expanded = false
     @EnvironmentObject private var studio: StudioStore
     @State private var image: UIImage?
     var body: some View {
         Group {
-            if let image { Image(uiImage: image).resizable().scaledToFill() }
+            if let image {
+                if expanded { Image(uiImage: image).resizable().scaledToFit() }
+                else { Image(uiImage: image).resizable().scaledToFill() }
+            }
             else { Image(systemName: "photo").frame(maxWidth: .infinity, maxHeight: .infinity).background(Brand.line) }
-        }.frame(width: 80, height: 80).clipShape(RoundedRectangle(cornerRadius: 10)).accessibilityLabel(photo.purpose)
+        }.frame(width: expanded ? nil : 80, height: expanded ? 200 : 80)
+            .frame(maxWidth: expanded ? .infinity : 80)
+            .background(Brand.cream).clipShape(RoundedRectangle(cornerRadius: 10)).accessibilityLabel(photo.purpose)
             .task(id: photo.filename) {
                 let persistence = studio.persistence, name = photo.filename, thumbnail = photo.thumbnailFilename
+                let useFullImage = expanded
                 let bytes = await Task.detached(priority: .utility) { () -> Data? in
                     guard let full = try? persistence.photoURL(name), let small = try? persistence.photoURL(thumbnail) else { return nil }
+                    if useFullImage { return try? Data(contentsOf: full) }
                     if let data = try? Data(contentsOf: small) { return data }
                     guard let original = try? Data(contentsOf: full) else { return nil }
                     return try? StudioImageProcessor.normalize(original).thumbnail

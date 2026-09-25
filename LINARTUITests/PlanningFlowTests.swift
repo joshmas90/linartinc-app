@@ -179,6 +179,20 @@ final class PlanningFlowTests: XCTestCase {
         chooseStep("review", in: app)
         XCTAssertTrue(app.buttons["studioEdit-links"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["studioSend"].isEnabled)
+        app.buttons["studioSend"].tap()
+        let email = app.textFields["projectSignInEmail"]
+        XCTAssertTrue(email.waitForExistence(timeout: 5))
+        let requestLink = app.buttons["projectRequestSignIn"]
+        XCTAssertFalse(requestLink.isEnabled)
+        tapWhenVisible(email, in: app)
+        email.typeText("client")
+        XCTAssertFalse(requestLink.isEnabled, "An incomplete address cannot request a link")
+        email.typeText("@example.com")
+        app.toolbars.buttons["Done"].tap()
+        XCTAssertTrue(requestLink.isEnabled)
+        XCTAssertFalse(app.buttons["Delete my app account"].exists)
+        // Verify the form without sending a real sign-in email or uploading data.
+        capture("10-focused-verify-send", app)
     }
 
     private func chooseStep(_ id: String, in app: XCUIApplication) {

@@ -4,6 +4,7 @@ import Combine
 @MainActor final class CloudStudioStore: ObservableObject {
     @Published private(set) var email: String?
     @Published private(set) var busy = false
+    @Published private(set) var signInLinkEmail: String?
     @Published private(set) var receipts: [CloudReceipt] = []
     @Published var notice: String?
     @Published var authenticationMessage: String?
@@ -21,6 +22,7 @@ import Combine
         run {
             try await self.client.sendSignInLink(email: email.trimmingCharacters(in: .whitespacesAndNewlines))
             try Task.checkCancellation()
+            self.signInLinkEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
             self.notice = "Check your email and open the sign-in link on this device. Nothing has been uploaded yet."
         }
     }
@@ -31,12 +33,14 @@ import Combine
             catch { if !Task.isCancelled { self.authenticationMessage = error.localizedDescription }; throw error }
             try Task.checkCancellation()
             self.email = try await self.client.signedInEmail()
+            self.signInLinkEmail = nil
             self.notice = "Signed in. Review your brief and choose Verify & send when ready."
-            self.authenticationMessage = self.notice
+            self.authenticationMessage = nil
             try await self.loadRemoteState()
         }
     }
     func send(draft: StudioDraft, persistence: StudioPersistence, onSuccess: @escaping @MainActor (CloudReceipt) -> Void = { _ in }) {
+        guard draft.hasProjectContent, deletionRequest == nil else { return }
         run {
             let receipt = try await self.client.submit(draft: draft, persistence: persistence)
             try Task.checkCancellation()
@@ -83,7 +87,7 @@ import Combine
     func clearLocal() async throws {
         generation += 1
         task?.cancel(); task = nil; busy = false
-        email = nil; receipts = []; lastReceipt = nil; deletionRequest = nil
+        email = nil; receipts = []; lastReceipt = nil; deletionRequest = nil; signInLinkEmail = nil
         let confirmed = try await client.signOut()
         notice = confirmed ? "Signed out on this device. Cloud submissions remain available when you sign in again." : "Signed out on this device. Server sign-out could not be confirmed while offline; the session expires automatically."
     }

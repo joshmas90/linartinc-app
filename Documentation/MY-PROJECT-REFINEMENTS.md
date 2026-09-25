@@ -25,3 +25,16 @@ Native regression coverage was extended for contextual guidance preserving typed
 ## Native verification still required
 
 This Linux environment has no Xcode or Apple SDK. The app has not been compiled, simulator-tested or device-tested for this revision; XCTest/UI tests were added but not executed here. Run the existing iPhone/iPad validation workflow before distributing a build. Check large text, keyboard layout, VoiceOver, photo import, PDF sharing, email-link return (warm and cold launch), consent reset, upload failures/retry and a real successful receipt. No live inquiry, sign-in email, upload, app build or release was initiated by this work.
+
+## Integrated finishing pass
+
+The concurrent e756fa3 refinement was preserved and used as the base for this finishing pass:
+
+- Review shows larger, uncropped photos loaded from the normalized full image; compact editing thumbnails remain unchanged.
+- Email verification includes an inbox/waiting state, a resend action, valid-address gating and keyboard dismissal. The email-link callback returns to My Project without a redundant success alert; authentication failures retain their alert.
+- The send screen refreshes existing account state when opened and the store rejects empty briefs or a known pending account deletion.
+- Confirmation includes the submitting email, receipt sharing, a clear next-step explanation and VoiceOver heading focus.
+- The remaining PDF footer now says Project brief.
+- Native UI coverage also checks incomplete/valid email gating and keyboard dismissal without requesting an actual email.
+
+The final integrated source passed package verification, parsing without new errors, git diff checks and the same 12 backend tests. Native compilation, XCTest and device verification remain pending as described above. No build or release was started.

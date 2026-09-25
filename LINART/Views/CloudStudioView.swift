@@ -64,6 +64,7 @@ struct ProjectSendView: View {
     @State private var consent = false
     @State private var confirmation: SentProjectConfirmation?
     @State private var opened = false
+    @AccessibilityFocusState private var confirmationFocused: Bool
 
     var body: some View {
         ScrollView {
@@ -99,16 +100,19 @@ struct ProjectSendView: View {
                     NavigationLink("Privacy & your information") { PrivacyView() }.frame(minHeight: 44)
                 }
             }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
-        }.background(Brand.cream)
+        }.background(Brand.cream).scrollDismissesKeyboard(.interactively)
             .navigationTitle(confirmation == nil ? "Verify & send" : "Brief received")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(cloud.busy)
             .disabled(cloud.busy)
             .onAppear {
-                if email.isEmpty { email = studio.draft.inquiryEmail }
+                if email.isEmpty { email = cloud.signInLinkEmail ?? studio.draft.inquiryEmail }
                 if !opened {
                     opened = true
-                    if !cloud.busy { cloud.notice = nil }
+                    if !cloud.busy {
+                        cloud.notice = nil
+                        if cloud.email != nil { cloud.refresh() }
+                    }
                 }
             }
             .onChange(of: cloud.email) { _, _ in consent = false; confirmation = nil }
@@ -142,11 +146,11 @@ struct ProjectSendView: View {
     }
 
     private func send() {
-        guard canSend else { return }
+        guard canSend, let address = cloud.email else { return }
         let draft = studio.draft
         cloud.send(draft: draft, persistence: studio.persistence) { receipt in
             // This receipt belongs to this tap and snapshot, never an older submission.
-            confirmation = SentProjectConfirmation(receipt: receipt, title: draft.displayTitle, summary: draft.contentSummary)
+            confirmation = SentProjectConfirmation(receipt: receipt, title: draft.displayTitle, summary: draft.contentSummary, email: address)
             consent = false
         }
     }
@@ -156,18 +160,27 @@ struct ProjectSendView: View {
             Label("Your brief has been received", systemImage: "checkmark.seal.fill")
                 .font(.system(.title2, design: .serif)).foregroundStyle(Brand.bronze)
                 .accessibilityAddTraits(.isHeader).accessibilityIdentifier("projectSendSuccess")
+                .accessibilityFocused($confirmationFocused)
             Text(result.title).font(.title3.weight(.semibold))
             Text(result.summary).foregroundStyle(Brand.secondary)
+            Text("Sent as \(result.email)").font(.footnote).foregroundStyle(Brand.secondary)
             Text("Your project brief is stored securely with LINART. You can find its receipt in My Project → Sent briefs & account.")
             VStack(alignment: .leading, spacing: 8) {
                 Text("Submission reference").font(.caption.weight(.semibold)).foregroundStyle(Brand.secondary)
                 Text(result.receipt.id.uuidString).font(.caption.monospaced()).textSelection(.enabled)
                 if let date = result.receipt.submittedDate { Text(date.formatted(date: .abbreviated, time: .shortened)).font(.caption) }
             }
+            ShareLink(item: "LINART project brief\n\(result.title)\nReceipt: \(result.receipt.id.uuidString)\n\(result.receipt.submitted_at ?? "")") {
+                Label("Save or share receipt", systemImage: "square.and.arrow.up")
+            }.frame(minHeight: 44)
+            Text("What happens next").font(.headline)
+            Text("Your project brief is available to LINART for review. If you would like to speak with the team, contact \(Company.email).")
+                .foregroundStyle(Brand.secondary)
             Text("Your local draft remains available to edit. Later edits are not sent automatically. An appointment or estimate is arranged separately.")
                 .font(.subheadline).foregroundStyle(Brand.secondary)
             Button("Return to my brief") { dismiss() }.buttonStyle(PrimaryButtonStyle())
         }.padding(24).background(Brand.paper, in: RoundedRectangle(cornerRadius: 18))
+            .task { confirmationFocused = true }
     }
 }
 
@@ -175,19 +188,40 @@ private struct SentProjectConfirmation {
     let receipt: CloudReceipt
     let title: String
     let summary: String
+    let email: String
 }
 
 struct ProjectEmailSignInView: View {
     @EnvironmentObject private var cloud: CloudStudioStore
     @Binding var email: String
+    @FocusState private var emailFocused: Bool
+    private var validEmail: Bool {
+        let address = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        return address.count <= 180 && address.range(of: #"^[^\s@]+@[^\s@]+\.[^\s@]+$"#, options: .regularExpression) != nil
+    }
     var body: some View {
+        if let sentTo = cloud.signInLinkEmail {
+            Text("Check your inbox").font(.headline)
+            Text("Open the latest link sent to \(sentTo) on this device. Check your junk folder if it has not arrived.")
+                .font(.subheadline).foregroundStyle(Brand.secondary)
+        }
         TextField("Email address", text: $email).textContentType(.emailAddress).keyboardType(.emailAddress)
             .textInputAutocapitalization(.never).autocorrectionDisabled()
             .textFieldStyle(.roundedBorder)
             .accessibilityLabel("Email address")
             .accessibilityIdentifier("projectSignInEmail")
-        Button("Email me a sign-in link", systemImage: "envelope") { cloud.signIn(email: email) }
-            .frame(minHeight: 44).disabled(email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || cloud.busy)
+            .focused($emailFocused)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { emailFocused = false }
+                }
+            }
+        Button(cloud.signInLinkEmail == nil ? "Email me a sign-in link" : "Send a new sign-in link", systemImage: "envelope") {
+            emailFocused = false
+            cloud.signIn(email: email)
+        }.frame(minHeight: 44).disabled(!validEmail || cloud.busy)
+            .accessibilityIdentifier("projectRequestSignIn")
         Text("Open the link on this device to return to My Project. No password is needed and signing in does not send your project.")
             .font(.footnote).foregroundStyle(Brand.secondary)
     }
