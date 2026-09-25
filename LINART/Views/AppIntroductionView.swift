@@ -13,6 +13,7 @@ struct AppIntroductionView: View {
     var body: some View {
         ZStack {
             RootView()
+                .opacity(isIntroductionPresented ? 0 : 1)
                 .allowsHitTesting(!isIntroductionPresented)
                 .accessibilityHidden(isIntroductionPresented)
 
@@ -21,13 +22,13 @@ struct AppIntroductionView: View {
                     .transition(reduceMotion ? .identity : .opacity)
                     .zIndex(1)
             }
-        }
+        }.background(Brand.cream.ignoresSafeArea())
     }
 
     private func finishIntroduction() {
         guard isIntroductionPresented else { return }
         // The current screen stays mounted underneath, preserving navigation/drafts.
-        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.65)) {
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
             openingIntroduction = false
             store.introductionReplayRequested = false
         }

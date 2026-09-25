@@ -6,15 +6,15 @@ struct RootView: View {
     var body: some View {
         TabView(selection: $store.selectedTab) {
             NavigationStack { HomeView() }
-                .tabItem { Label("Home", systemImage: "house") }.tag(0)
+                .tabItem { Label("Home", systemImage: "house") }.tag(AppTab.home)
             NavigationStack { ProjectsView() }
-                .tabItem { Label("Projects", systemImage: "square.grid.2x2") }.tag(1)
+                .tabItem { Label("Projects", systemImage: "square.grid.2x2") }.tag(AppTab.projects)
             NavigationStack { ServicesView() }
-                .tabItem { Label("Services", systemImage: "hammer") }.tag(4)
+                .tabItem { Label("Services", systemImage: "hammer") }.tag(AppTab.services)
             NavigationStack { PlannerView() }
-                .tabItem { Label("My Project", systemImage: "square.and.pencil") }.tag(2)
+                .tabItem { Label("My Project", systemImage: "square.and.pencil") }.tag(AppTab.studio)
             NavigationStack { MoreView() }
-                .tabItem { Label("More", systemImage: "line.3.horizontal") }.tag(3)
+                .tabItem { Label("More", systemImage: "line.3.horizontal") }.tag(AppTab.more)
         }
         .sheet(isPresented: $store.inquiryPresented) {
             NavigationStack { InquiryView() }

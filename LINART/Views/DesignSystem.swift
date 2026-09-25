@@ -47,7 +47,7 @@ struct SectionHeading: View {
             Text(title).font(.system(.largeTitle, design: .serif)).foregroundStyle(Brand.ink)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }
 }
 
@@ -83,11 +83,12 @@ struct MenuRow: View {
     let title: String
     let subtitle: String
     let symbol: String
+    @ScaledMetric(relativeTo: .title2) private var symbolWidth: CGFloat = 30
 
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: symbol).font(.title2).foregroundStyle(Brand.bronze)
-                .frame(width: 30).accessibilityHidden(true)
+                .frame(width: symbolWidth).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 5) {
                 Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
                 if !subtitle.isEmpty {
@@ -167,14 +168,14 @@ struct ContactActions: View {
                     if !accepted { unavailable = "Call LINART at \(Company.phone) from a phone." }
                 }
             } label: {
-                Label(Company.phone, systemImage: "phone").frame(maxWidth: .infinity, alignment: .leading)
+                Label(Company.phone, systemImage: "phone").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             }
             Button {
                 openURL(Company.emailURL) { accepted in
                     if !accepted { unavailable = "Email \(Company.email) using your preferred email app." }
                 }
             } label: {
-                Label(Company.email, systemImage: "envelope").frame(maxWidth: .infinity, alignment: .leading)
+                Label(Company.email, systemImage: "envelope").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             }
         }
         .font(.body).buttonStyle(.bordered).tint(Brand.bronze)

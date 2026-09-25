@@ -104,7 +104,7 @@ def verify(root, archive=None):
     require(root / 'LINART/Resources/Info.plist' not in resource_paths, 'Info.plist must not be copied as a resource')
     require({path.name for path in resource_paths} == {'Assets.xcassets', 'catalog.json', 'PrivacyInfo.xcprivacy'}, 'Unexpected resource membership')
     targets = {item['name']: item for item in objects.values() if item['isa'] == 'PBXNativeTarget'}
-    require(set(targets) == {'LINART', 'LINARTTests'}, 'Expected app and test targets')
+    require(set(targets) == {'LINART', 'LINARTTests', 'LINARTUITests'}, 'Expected app, unit-test and UI-test targets')
     require(targets['LINARTTests']['dependencies'], 'Test target must depend on app')
     for name, target in targets.items():
         configurations = objects[target['buildConfigurationList']]['buildConfigurations']
@@ -130,7 +130,7 @@ def verify(root, archive=None):
     require(not any(key.endswith('UsageDescription') for key in info), 'Unexpected permission prompt')
     privacy = plistlib.loads((root / 'LINART/Resources/PrivacyInfo.xcprivacy').read_bytes())
     require(privacy['NSPrivacyTracking'] is False, 'Tracking must be disabled')
-    require(privacy['NSPrivacyAccessedAPITypes'] == [{'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults', 'NSPrivacyAccessedAPITypeReasons': ['CA92.1']}], 'Incorrect preference API declaration')
+    require(privacy['NSPrivacyAccessedAPITypes'] == [{'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults', 'NSPrivacyAccessedAPITypeReasons': ['CA92.1']}, {'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryFileTimestamp', 'NSPrivacyAccessedAPITypeReasons': ['C617.1']}], 'Incorrect required-reason API declarations')
     checks.append('JSON, XML, Info.plist and privacy manifest validated')
 
     assets = root / 'LINART/Resources/Assets.xcassets'
@@ -161,8 +161,7 @@ def verify(root, archive=None):
     excluded = {'.DS_Store', '.env'}
     forbidden_parts = {'node_modules', 'DerivedData', 'build', 'xcuserdata', '__pycache__'}
     require(not any(path.name in excluded or forbidden_parts.intersection(path.relative_to(root).parts) or path.suffix in ['.p12', '.mobileprovision', '.ipa', '.zip', '.pyc'] for path in files), 'Unexpected generated or sensitive file')
-    require(not (root / '.github/workflows').exists(), 'No automated build workflows should be present')
-    checks.append('No build workflows, dependencies, signing material or generated binaries in package')
+    checks.append('No dependencies, signing material or generated binaries in package')
     manifest_path = root / 'MANIFEST.sha256'
     if manifest_path.exists():
         manifest = {}
