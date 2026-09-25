@@ -91,8 +91,11 @@ struct StudioEditorView: View {
                     .font(.caption).foregroundStyle(Brand.secondary)
                 if studio.isImporting { ProgressView("Adding your selected photos…") }
                 if studio.draft.photos.isEmpty && !studio.isImporting {
-                    Text("No photos handy? Skip this step and come back later.")
-                        .foregroundStyle(Brand.secondary)
+                    StudioEmptyState(
+                        symbol: "photo.on.rectangle.angled",
+                        title: "No photos yet",
+                        message: "A wide view is a useful start, but you can continue without photos and return whenever you're ready."
+                    )
                 }
             } header: { Text("Add photos · optional") }
 
@@ -133,8 +136,11 @@ struct StudioEditorView: View {
         Group {
             Section {
                 if studio.draft.references.isEmpty {
-                    Text("Have a room, finish or product in mind? Save its web address here.")
-                        .foregroundStyle(Brand.secondary)
+                    StudioEmptyState(
+                        symbol: "link",
+                        title: "No web inspiration saved yet",
+                        message: "Add a room, finish or product link only when it helps explain what you like."
+                    )
                 }
                 ForEach(studio.draft.references) { reference in
                     VStack(alignment: .leading, spacing: 8) {
@@ -153,8 +159,11 @@ struct StudioEditorView: View {
 
             Section("Ideas from LINART projects · optional") {
                 if studio.draft.ideas.isEmpty {
-                    Text("Choose details you like from our portfolio without leaving your plan.")
-                        .foregroundStyle(Brand.secondary)
+                    StudioEmptyState(
+                        symbol: "square.grid.2x2",
+                        title: "No LINART inspiration selected yet",
+                        message: "Browse completed projects and save only the details that speak to your project."
+                    )
                 }
                 ForEach($studio.draft.ideas) { $idea in
                     VStack(alignment: .leading, spacing: 8) {
@@ -251,8 +260,9 @@ struct StudioIdeasPicker: View {
                             }.padding([.horizontal, .bottom], 20)
                         }
                         .accessibilityElement(children: .contain)
-                        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Brand.line))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     if projects.isEmpty {
                         Text("The portfolio could not be loaded. Your plan is still available; you can add ideas later.")
@@ -313,13 +323,48 @@ struct StudioField: View {
     var email = false
     var placeholder = "Optional"
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(title).font(.subheadline.weight(.medium))
-            TextField(placeholder, text: $text, axis: .vertical).lineLimit(2...6).accessibilityLabel(title)
-                .keyboardType(email ? .emailAddress : .default).textInputAutocapitalization(email ? .never : .sentences).autocorrectionDisabled(email)
-        }.padding(.vertical, 4)
+        VStack(alignment: .leading, spacing: PremiumLayout.xs) {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Brand.ink)
+            TextField(placeholder, text: $text, axis: .vertical)
+                .lineLimit(2...6)
+                .lineSpacing(3)
+                .accessibilityLabel(title)
+                .keyboardType(email ? .emailAddress : .default)
+                .textInputAutocapitalization(email ? .never : .sentences)
+                .autocorrectionDisabled(email)
+        }
+        .padding(.vertical, 5)
     }
 }
+struct StudioEmptyState: View {
+    let symbol: String
+    let title: String
+    let message: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: PremiumLayout.sm) {
+            Image(systemName: symbol)
+                .font(.title3)
+                .foregroundStyle(Brand.bronze)
+                .frame(width: 28)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.ink)
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(Brand.secondary)
+                    .lineSpacing(3)
+            }
+        }
+        .padding(.vertical, PremiumLayout.xs)
+        .accessibilityElement(children: .combine)
+    }
+}
+
 struct StudioThumbnail: View {
     let photo: StudioPhoto
     var expanded = false
