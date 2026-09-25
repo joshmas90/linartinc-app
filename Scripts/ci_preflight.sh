@@ -13,17 +13,20 @@ xcrun simctl list devices available --json > build/simulators.json
 
 FAMILY="${SIMULATOR_FAMILY:-iPhone}"
 RUNTIME_MAJOR="${SIMULATOR_RUNTIME_MAJOR:-26}"
-if [[ -n "${SIMULATOR_NAME:-}" ]]; then
-  PREFERRED_ARGS=(--preferred-name "$SIMULATOR_NAME")
-else
-  PREFERRED_ARGS=()
-fi
 
-python3 Scripts/select_simulator.py \
-  --devices-json build/simulators.json \
-  --family "$FAMILY" \
-  --runtime-major "$RUNTIME_MAJOR" \
-  "${PREFERRED_ARGS[@]}" \
-  --output build/simulator.env
+if [[ -n "${SIMULATOR_NAME:-}" ]]; then
+  python3 Scripts/select_simulator.py \
+    --devices-json build/simulators.json \
+    --family "$FAMILY" \
+    --runtime-major "$RUNTIME_MAJOR" \
+    --preferred-name "$SIMULATOR_NAME" \
+    --output build/simulator.env
+else
+  python3 Scripts/select_simulator.py \
+    --devices-json build/simulators.json \
+    --family "$FAMILY" \
+    --runtime-major "$RUNTIME_MAJOR" \
+    --output build/simulator.env
+fi
 
 cat build/simulator.env
