@@ -10,11 +10,18 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     hero(minHeight: viewport.size.height)
                     VStack(alignment: .leading, spacing: 24) {
-                        HStack {
+                        HStack(spacing: PremiumLayout.sm) {
                             Label("Family-owned", systemImage: "person.2")
-                            Spacer()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.9)
+                                .layoutPriority(1)
+                            Spacer(minLength: PremiumLayout.sm)
                             Text("Since 2004")
-                        }.font(.subheadline).foregroundStyle(Brand.bronze)
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.bronze)
                         SectionHeading(eyebrow: "Selected work", title: "The details make the difference.")
                         if let catalog = store.catalog {
                             ForEach(Array(catalog.projects.prefix(3))) { project in
@@ -34,7 +41,11 @@ struct HomeView: View {
                             CatalogUnavailableView()
                         }
                         ContactActions()
-                    }.padding(24).padding(.vertical, 12).frame(maxWidth: 760)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 24)
+                    .padding(.bottom, PremiumLayout.tabBarClearance)
+                    .frame(maxWidth: 760)
                 }.frame(maxWidth: .infinity)
             }
             .background(Brand.cream)
