@@ -8,14 +8,23 @@ workflows:
       vars:
         XCODE_PROJECT: LINART.xcodeproj
         XCODE_SCHEME: LINART
+        SIMULATOR_RUNTIME_MAJOR: 26
     scripts:
-      - name: Validate source and test the current commit
-        script: bash Scripts/validate_ios.sh
+      - name: Preflight package, backend and simulator
+        script: bash Scripts/ci_preflight.sh
+      - name: Compile app and tests once
+        script: bash Scripts/build_for_testing.sh
+      - name: Run native unit tests
+        script: TEST_SUITE=unit bash Scripts/test_without_building.sh
+      - name: Run full planning UI regression
+        script: TEST_SUITE=ui UI_TEST_RETRIES=1 bash Scripts/test_without_building.sh
     artifacts:
-      - build/xcode-version.log
-      - build/simulators.json
+      - build/*.log
+      - build/*.json
+      - build/*.env
       - build/*-xcodebuild.log
       - build/*-TestResults.xcresult
+
   linart-app-store-upload:
     name: LINART - Upload to App Store Connect (manual)
     instance_type: mac_mini_m2
@@ -32,6 +41,7 @@ workflows:
         XCODE_SCHEME: LINART
         EXPECTED_BUNDLE_ID: com.linartinc.LINART
         EXPECTED_APPLE_TEAM_ID: RWPXN4U543
+        SIMULATOR_RUNTIME_MAJOR: 26
     scripts:
       - name: Check LINART release configuration
         script: |
@@ -44,8 +54,14 @@ workflows:
           plutil -lint LINART/Resources/PrivacyInfo.xcprivacy
           [[ "${PROJECT_BUILD_NUMBER:?Codemagic project build number is missing}" =~ ^[1-9][0-9]*$ ]]
           xcodebuild -version
-      - name: Require tests to pass before signing and upload
-        script: bash Scripts/validate_ios.sh
+      - name: Preflight release source and simulator
+        script: bash Scripts/ci_preflight.sh
+      - name: Compile app and tests once
+        script: bash Scripts/build_for_testing.sh
+      - name: Certify native unit tests
+        script: TEST_SUITE=unit bash Scripts/test_without_building.sh
+      - name: Certify release UI smoke flow
+        script: TEST_SUITE=smoke UI_TEST_RETRIES=1 bash Scripts/test_without_building.sh
       - name: Apply the LINART App Store signing profile
         script: |
           #!/bin/bash
@@ -97,6 +113,9 @@ workflows:
           print(f"Verified {info['CFBundleIdentifier']} build {info['CFBundleVersion']} for Apple upload.")
           PY
     artifacts:
+      - build/*.log
+      - build/*.json
+      - build/*.env
       - build/*-xcodebuild.log
       - build/*-TestResults.xcresult
       - build/ios/ipa/*.ipa
