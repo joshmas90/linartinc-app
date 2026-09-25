@@ -22,8 +22,10 @@ final class PlanningFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "More daylight and a calmer kitchen.")).firstMatch.waitForExistence(timeout: 5))
         capture("03-review", app)
         XCUIDevice.shared.orientation = .landscapeLeft
+        settleRotation(app, landscape: true)
         capture("04-review-landscape", app)
         XCUIDevice.shared.orientation = .portrait
+        settleRotation(app, landscape: false)
         tab("More", app)
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Contact Us,")).firstMatch.tap()
         app.buttons["Start a Project Inquiry"].tap()
@@ -39,9 +41,37 @@ final class PlanningFlowTests: XCTestCase {
         app.buttons["Clear all local app data"].tap()
         app.buttons["Clear local data"].tap()
         tab("My Project", app)
+        for _ in 0..<2 where !app.buttons["openStudio"].exists {
+            app.navigationBars.buttons.element(boundBy: 0).tap()
+        }
         XCTAssertTrue(app.buttons["openStudio"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["More daylight and a calmer kitchen."].exists)
         capture("07-cleared-studio", app)
+    }
+    func testLargeTextPlanning() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        let skip = app.buttons["skipBrandIntroduction"]
+        if skip.waitForExistence(timeout: 5), skip.isHittable { skip.tap() }
+        capture("08-large-text-home", app)
+        tab("My Project", app)
+        let studio = app.buttons["openStudio"]
+        XCTAssertTrue(studio.waitForExistence(timeout: 5))
+        if !studio.isHittable { app.swipeUp() }
+        XCTAssertTrue(studio.isHittable); studio.tap()
+        capture("09-large-text-studio", app)
+    }
+    private func settleRotation(_ app: XCUIApplication, landscape: Bool) {
+        let frame = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            landscape ? app.frame.width > app.frame.height : app.frame.height > app.frame.width
+        }, object: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [frame], timeout: 5), .completed)
+        // Wait for UIKit's orientation animation, not just the new screen bounds.
+        let settled = expectation(description: "Rotation animation settled")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { settled.fulfill() }
+        wait(for: [settled], timeout: 3)
     }
     private func tab(_ name: String, _ app: XCUIApplication) {
         let tab = app.tabBars.buttons[name]
@@ -49,7 +79,12 @@ final class PlanningFlowTests: XCTestCase {
         else {
             // iPad floating tabs may be exposed as cells after rotation on iOS 26.
             let target = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", name)).firstMatch
-            XCTAssertTrue(target.waitForExistence(timeout: 5)); target.tap()
+            if !target.exists {
+                let page = app.buttons[name == "More" ? "Next Page" : "Previous Page"]
+                if page.exists { page.tap() }
+            }
+            if !target.waitForExistence(timeout: 5) { print(app.debugDescription) }
+            XCTAssertTrue(target.exists); target.tap()
         }
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
