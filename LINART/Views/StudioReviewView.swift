@@ -87,6 +87,7 @@ struct StudioReviewView: View {
                             .accessibilityIdentifier("studioEdit-\(section.id)")
                         }
                     }
+                    .accessibilityElement(children: .contain)
                 }
             }
             .padding(20)
