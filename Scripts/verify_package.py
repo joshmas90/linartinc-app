@@ -104,7 +104,7 @@ def verify(root, archive=None):
     require(root / 'LINART/Resources/Info.plist' not in resource_paths, 'Info.plist must not be copied as a resource')
     require({path.name for path in resource_paths} == {'Assets.xcassets', 'catalog.json', 'PrivacyInfo.xcprivacy'}, 'Unexpected resource membership')
     targets = {item['name']: item for item in objects.values() if item['isa'] == 'PBXNativeTarget'}
-    require(set(targets) == {'LINART', 'LINARTTests'}, 'Expected app and test targets')
+    require(set(targets) == {'LINART', 'LINARTTests', 'LINARTUITests'}, 'Expected app, unit-test and UI-test targets')
     require(targets['LINARTTests']['dependencies'], 'Test target must depend on app')
     for name, target in targets.items():
         configurations = objects[target['buildConfigurationList']]['buildConfigurations']

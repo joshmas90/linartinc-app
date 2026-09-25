@@ -24,6 +24,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Validate source and run regression tests
         run: bash Scripts/validate_ios.sh
+      - name: Check upload validation
+        run: node --test Backend/validation.test.mjs
       - name: Preserve test results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -33,4 +35,14 @@ jobs:
             build/*.log
             build/*.json
             build/*.xcresult
+          retention-days: 14
+      - name: Export screen captures
+        if: always()
+        run: xcrun xcresulttool export attachments --path "build/${SIMULATOR_FAMILY}-TestResults.xcresult" --output-path build/screenshots
+      - name: Preserve screen captures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-${{ matrix.family }}-screenshots
+          path: build/screenshots
           retention-days: 14

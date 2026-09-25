@@ -65,7 +65,7 @@ final class StudioStore: ObservableObject {
 
     func flush() async {
         saveTask?.cancel()
-        guard isReady else { return }
+        guard isReady, hasUnsavedChanges else { return }
         await persistCurrent()
     }
 

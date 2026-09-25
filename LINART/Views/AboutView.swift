@@ -63,6 +63,7 @@ struct ContactView: View {
 struct SettingsView: View {
     @EnvironmentObject private var store: AppStore
     @EnvironmentObject private var studio: StudioStore
+    @EnvironmentObject private var cloud: CloudStudioStore
     @State private var confirmReset = false
     @State private var resetError: String?
 
@@ -95,6 +96,7 @@ struct SettingsView: View {
                         do {
                             try await studio.clear()
                             try await store.clearSavedInquiry()
+                            try await cloud.clearLocal()
                             store.clearLocalData()
                             Diagnostics.shared.clear()
                         } catch { resetError = "Your saved files could not be cleared. Please try again." }
@@ -188,6 +190,11 @@ struct PrivacyView: View {
             }
             Section("Other apps and services") {
                 Text("Calling, emailing, sharing or opening the website hands control to the app or service you choose. Their own privacy practices apply. Sharing a project brief exports a PDF containing the information you entered and the photos you added. You choose a destination and whether to send it; LINART cannot confirm delivery from this app. Your initial inquiry and shared PDF are not automatically linked by the server.")
+            }
+            Section("Optional direct Studio submissions") {
+                Text("When you sign in and choose Send to LINART, your email-verified account, project answers, links, saved ideas and selected photo copies are processed by Supabase for LINART. App submissions use separate private storage and app-specific database tables. Nothing is uploaded during ordinary local planning.")
+                Text("Sign-in emails are sent through LINART’s Hostinger email service. Sign-in tokens are stored in the device Keychain. Sign out to remove this device’s saved session. Clear local data does not delete a cloud submission; use Send to LINART → Your app submissions to delete it and its uploaded photos.")
+                Text("A receipt confirms server storage only. LINART may already have downloaded a copy when you request deletion. Email services@linartinc.com for help with account records or information already received by the team.")
             }
             Section("Contact") { ContactActions() }
         }

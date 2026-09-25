@@ -23,6 +23,8 @@ struct StudioReviewView: View {
                     HStack { if studio.isExporting { ProgressView().tint(.white) }; Text(studio.isExporting ? "Preparing your PDF…" : "Export & share PDF"); Image(systemName: "square.and.arrow.up") }
                 }.buttonStyle(PrimaryButtonStyle()).disabled(!studio.isReady || studio.isImporting || studio.isExporting)
                 Text("Choose your email app, address the message to \(Company.email), and send the PDF. Sharing opens another app; delivery is not confirmed here.").font(.footnote).foregroundStyle(Brand.secondary)
+                Divider()
+                NavigationLink { CloudStudioView() } label: { Label("Send directly to LINART", systemImage: "paperplane").frame(maxWidth: .infinity, minHeight: 44) }.buttonStyle(SecondaryButtonStyle())
                 if let date = studio.lastExportedAt { Text("Last prepared \(date.formatted(date: .abbreviated, time: .shortened)).").font(.caption).foregroundStyle(Brand.secondary) }
             }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
         }.background(Brand.cream).navigationTitle("Review & share").navigationBarTitleDisplayMode(.inline)

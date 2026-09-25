@@ -26,7 +26,7 @@ struct PlannerView: View {
                     }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
                         .background(Brand.paper, in: RoundedRectangle(cornerRadius: 18))
                         .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Brand.line))
-                }.buttonStyle(.plain).disabled(!studio.isReady)
+                }.buttonStyle(.plain).disabled(!studio.isReady).accessibilityIdentifier("openStudio")
                 Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary)
                 SectionHeading(eyebrow: "Collected with care", title: "Saved inspiration")
                 if savedProjects.isEmpty {
@@ -103,7 +103,7 @@ struct ProjectStudioView: View {
                     NavigationLink {
                         if section == .review { StudioReviewView() } else { StudioEditorView(section: section) }
                     } label: { MenuRow(title: section.rawValue, subtitle: section.subtitle, symbol: section.symbol) }
-                        .buttonStyle(.plain).disabled(!studio.isReady)
+                        .buttonStyle(.plain).disabled(!studio.isReady).accessibilityIdentifier("studio-\(section.id)")
                 }
                 Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary)
             }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
