@@ -6,7 +6,7 @@ struct LINARTApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            AppIntroductionView()
                 .environmentObject(store)
                 .tint(Brand.bronze)
                 .preferredColorScheme(.light)

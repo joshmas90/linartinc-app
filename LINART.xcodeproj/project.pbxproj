@@ -5,6 +5,16 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+		"410AF150C37C43839000A001" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Views/AppIntroductionView.swift";
+			"sourceTree" = "<group>";
+		};
+		"410AF150C37C43839000A002" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "410AF150C37C43839000A001";
+		};
 		"F304ED7344A8A80C32444E98" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -220,6 +230,7 @@
 				"A5A0E3D4171D663EE148BCF7",
 				"0F1A2A8CCCAEFEE4A0C4DA0D",
 				"20C64F0D57466CC49C862A85",
+				"410AF150C37C43839000A001",
 				"9BA5BC734FE887FE6B16E888",
 				"394EDBEA82B0B57956DCA5E3",
 				"0CC50FE030634B3721BF99C3",
@@ -272,6 +283,7 @@
 				"F04B889D09A7DEBF7F4D90D0",
 				"7713729673D856A02D0E47E0",
 				"D0784EA40AABA32D43821C15",
+				"410AF150C37C43839000A002",
 				"1D137481CB12C37B169C7729",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
