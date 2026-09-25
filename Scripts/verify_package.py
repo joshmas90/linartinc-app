@@ -130,7 +130,7 @@ def verify(root, archive=None):
     require(not any(key.endswith('UsageDescription') for key in info), 'Unexpected permission prompt')
     privacy = plistlib.loads((root / 'LINART/Resources/PrivacyInfo.xcprivacy').read_bytes())
     require(privacy['NSPrivacyTracking'] is False, 'Tracking must be disabled')
-    require(privacy['NSPrivacyAccessedAPITypes'] == [{'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults', 'NSPrivacyAccessedAPITypeReasons': ['CA92.1']}], 'Incorrect preference API declaration')
+    require(privacy['NSPrivacyAccessedAPITypes'] == [{'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryUserDefaults', 'NSPrivacyAccessedAPITypeReasons': ['CA92.1']}, {'NSPrivacyAccessedAPIType': 'NSPrivacyAccessedAPICategoryFileTimestamp', 'NSPrivacyAccessedAPITypeReasons': ['C617.1']}], 'Incorrect required-reason API declarations')
     checks.append('JSON, XML, Info.plist and privacy manifest validated')
 
     assets = root / 'LINART/Resources/Assets.xcassets'

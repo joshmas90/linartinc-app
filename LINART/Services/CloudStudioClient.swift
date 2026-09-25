@@ -31,7 +31,7 @@ enum CloudKeychain {
         let status = SecItemUpdate(query as CFDictionary, [kSecValueData as String: data] as CFDictionary)
         if status == errSecItemNotFound {
             var item = query; item[kSecValueData as String] = data; item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-            let added = SecItemAdd(item as CFDictionary); guard added == errSecSuccess else { throw CloudStudioError.keychain(added) }
+            let added = SecItemAdd(item as CFDictionary, nil); guard added == errSecSuccess else { throw CloudStudioError.keychain(added) }
         } else if status != errSecSuccess { throw CloudStudioError.keychain(status) }
     }
 }
@@ -112,8 +112,12 @@ actor CloudStudioClient {
         try load()
         guard let session else { throw CloudStudioError.signedOut }
         if session.expiresAt.timeIntervalSinceNow > 60 { return session }
-        if let refreshTask { return try await refreshTask.value }
         let token = generation
+        if let refreshTask {
+            let refreshed = try await refreshTask.value
+            guard token == generation else { throw CancellationError() }
+            return refreshed
+        }
         let task = Task { () async throws -> CloudSession in
             let data = try await self.request(url: Self.base.appendingPathComponent("auth/v1/token").appending(queryItems: [URLQueryItem(name: "grant_type", value: "refresh_token")]), method: "POST", body: JSONSerialization.data(withJSONObject: ["refresh_token": session.refreshToken]))
             return try JSONDecoder().decode(CloudTokenResponse.self, from: data).session
@@ -169,6 +173,10 @@ actor CloudStudioClient {
     func remove(_ receipt: CloudReceipt) async throws {
         let auth = try await validSession()
         _ = try await call(action: "delete", method: "DELETE", id: receipt.id, session: auth)
+        if let bytes = try CloudKeychain.read("pending"),
+           let pending = try? JSONDecoder().decode(CloudPending.self, from: bytes), pending.id == receipt.id {
+            try CloudKeychain.write(nil, account: "pending")
+        }
     }
     private func call(action: String, method: String, id: UUID? = nil, photo: UUID? = nil, body: Data? = nil, contentType: String = "application/json", session: CloudSession) async throws -> Data {
         var query = [URLQueryItem(name: "action", value: action)]
