@@ -75,7 +75,8 @@ struct StudioEditorView: View {
     }
 
     private var photos: some View {
-        Group {
+        let importing = studio.isImporting
+        return Group {
             Section {
                 Text(studio.draft.guidance.photos).foregroundStyle(Brand.secondary)
                     .accessibilityIdentifier("studioPhotoGuidance")
@@ -83,7 +84,7 @@ struct StudioEditorView: View {
                     ForEach(purposes, id: \.self) { Text($0).tag($0) }
                 }.disabled(studio.isImporting)
                 PhotosPicker(selection: $selections, maxSelectionCount: max(1, 8 - studio.draft.photos.count), matching: .images) {
-                    Label(studio.isImporting ? "Adding photos…" : "Choose photos", systemImage: "photo.badge.plus")
+                    Label(importing ? "Adding photos…" : "Choose photos", systemImage: "photo.badge.plus")
                         .frame(minHeight: 44)
                 }.disabled(studio.isImporting || studio.draft.photos.count >= 8)
                     .accessibilityIdentifier("studioAddPhotos")
