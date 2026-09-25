@@ -117,12 +117,12 @@ struct StudioDraft: Codable, Equatable, Sendable {
     var displayTitle: String { projectType.isEmpty ? "Your project brief" : projectType }
     var contentSummary: String {
         var parts: [String] = []
-        if StudioSection.details.hasContent(in: self) { parts.append("Project details added") }
+        if StudioSection.details.hasContent(in: self) { parts.append("Project details saved") }
         if !photos.isEmpty { parts.append("\(photos.count) \(photos.count == 1 ? "photo" : "photos")") }
-        if !ideas.isEmpty { parts.append("\(ideas.count) \(ideas.count == 1 ? "portfolio idea" : "portfolio ideas")") }
-        if !references.isEmpty { parts.append("\(references.count) \(references.count == 1 ? "link" : "links")") }
-        if StudioSection.timing.hasContent(in: self) { parts.append("Budget or timing added") }
-        return parts.isEmpty ? "No details added yet" : parts.joined(separator: " · ")
+        if !ideas.isEmpty { parts.append("\(ideas.count) \(ideas.count == 1 ? "portfolio idea" : "portfolio ideas") }
+        if !references.isEmpty { parts.append("\(references.count) \(references.count == 1 ? "inspiration link" : "inspiration links") }
+        if StudioSection.timing.hasContent(in: self) { parts.append("Planning horizon noted") }
+        return parts.isEmpty ? "Your brief is ready for a first detail" : parts.joined(separator: " · ")
     }
     var unansweredSections: [StudioSection] {
         StudioSection.allCases.filter { $0 != .review && !$0.hasContent(in: self) }
