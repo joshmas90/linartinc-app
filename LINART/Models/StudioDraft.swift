@@ -122,7 +122,7 @@ struct StudioDraft: Codable, Equatable, Sendable {
         if !ideas.isEmpty { parts.append("\(ideas.count) \(ideas.count == 1 ? "portfolio idea" : "portfolio ideas")") }
         if !references.isEmpty { parts.append("\(references.count) \(references.count == 1 ? "inspiration link" : "inspiration links")") }
         if StudioSection.timing.hasContent(in: self) { parts.append("Planning horizon noted") }
-        return parts.isEmpty ? "Your brief is ready for a first detail" : parts.joined(separator: " · ")
+        return parts.isEmpty ? "No project details added yet" : parts.joined(separator: " · ")
     }
     var unansweredSections: [StudioSection] {
         StudioSection.allCases.filter { $0 != .review && !$0.hasContent(in: self) }
