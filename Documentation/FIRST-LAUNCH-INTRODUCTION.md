@@ -9,12 +9,14 @@ Five effects share one restrained sequence:
 | Effect | Timing from appearance |
 | --- | --- |
 | Staggered typography | LINART: 0–0.55 s; tagline: 0.18–0.73 s; headline: 0.85–1.45 s; location: 1.15–1.70 s |
-| Architectural reveal | Brass rule draws from its center at 0.28–0.73 s; photo reveals from top to bottom at 0.45–1.30 s |
-| Cinematic photograph | Gentle 1.0 to 1.035 scale increase at 0.45–3.00 s |
+| Architectural reveal | Brass rule draws from its center at 0.28–0.73 s; a broad feathered photo reveal travels downward at 0.35–1.80 s |
+| Cinematic photograph | Slow pullback from 1.075 to 1.015 scale at 0.35–3.00 s, with a six-point soft-focus/opacity transition resolving at 1.60 s |
 | Brass light sweep | One masked highlight crosses only the LINART letters at 0.90–1.95 s |
 | Seamless entrance | Welcome dissolves into the mounted app at 3.00–3.65 s; the initial Home screen uses the same photograph |
 
 Skip is available immediately with a minimum 44-point target and also uses the short dissolve. Reduce Motion removes all animation. VoiceOver and accessibility text sizes show the complete static content and a Continue button instead of timed dismissal.
+
+The refined photo entrance uses a broad alpha feather rather than a hard mask edge. A restrained focus transition and eased camera pullback let the room resolve gradually; the final photograph is fully sharp and opaque before dismissal. The source photograph itself is unchanged.
 
 Text is rendered natively and wraps; only the photograph crops. Portrait uses a vertical editorial composition. Landscape uses a split composition when space allows, with a scrollable text panel. Large accessibility text uses the scrollable vertical layout. The bottom control stays outside the scrolling content and within safe areas.
 

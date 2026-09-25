@@ -192,13 +192,28 @@ private struct BrandIntroductionView: View {
                 .resizable()
                 .scaledToFill()
                 .frame(width: bounds.size.width, height: bounds.size.height)
-                .scaleEffect(motionEnabled && revealed ? 1.035 : 1)
-                .animation(motion(.easeInOut(duration: 2.55).delay(0.45)), value: revealed)
+                .scaleEffect(motionEnabled ? (revealed ? 1.015 : 1.075) : 1)
+                .animation(motion(.timingCurve(0.16, 1, 0.3, 1, duration: 2.65).delay(0.35)), value: revealed)
+                .blur(radius: contentVisible ? 0 : 6)
+                .opacity(contentVisible ? 1 : 0.35)
+                .animation(motion(.easeOut(duration: 1.25).delay(0.35)), value: revealed)
                 .clipped()
                 .mask(alignment: .top) {
-                    Rectangle()
-                        .scaleEffect(x: 1, y: contentVisible ? 1 : 0, anchor: .top)
-                        .animation(motion(.easeInOut(duration: 0.85).delay(0.45)), value: revealed)
+                    // An oversized alpha gradient moves down through the frame.
+                    // Its broad feather has no hard leading edge, and the final
+                    // viewport sits entirely inside the opaque portion.
+                    LinearGradient(stops: [
+                        .init(color: .white, location: 0),
+                        .init(color: .white, location: 0.48),
+                        .init(color: .white.opacity(0.95), location: 0.56),
+                        .init(color: .white.opacity(0.65), location: 0.65),
+                        .init(color: .white.opacity(0.25), location: 0.73),
+                        .init(color: .clear, location: 0.82),
+                        .init(color: .clear, location: 1)
+                    ], startPoint: .top, endPoint: .bottom)
+                    .frame(height: bounds.size.height * 2.2)
+                    .offset(y: contentVisible ? 0 : -bounds.size.height * 2.2)
+                    .animation(motion(.easeInOut(duration: 1.45).delay(0.35)), value: revealed)
                 }
         }
         .accessibilityHidden(true)
