@@ -8,7 +8,9 @@ Open `LINART.xcodeproj`, select the shared LINART scheme, and use Xcode 26.6. Th
 
 There are no third-party runtime packages. The app contains a public Supabase publishable key, never SMTP credentials, signing material, or a server/service-role key.
 
-On macOS run `bash Scripts/validate_ios.sh`; set `SIMULATOR_FAMILY=iPad` for the tablet pass. It verifies the source package and executes unit/UI tests, saving logs and an `.xcresult` bundle. GitHub Actions runs both families. Codemagic's manual App Store workflow requires the same validation before signing or uploading.
+On macOS run `bash Scripts/validate_ios.sh`; set `SIMULATOR_FAMILY=iPad` for the tablet pass. Validation is staged into source/backend preflight, one `build-for-testing` compile, native unit tests, and UI tests run with `test-without-building`. Logs and separate `.xcresult` bundles are retained for each gate.
+
+GitHub Actions automatically certifies every `main` push on both iPhone and iPad with the full UI regression. Codemagic's manual App Store workflow independently re-runs preflight, native compilation, all unit tests, and a focused release UI smoke suite before signing, archiving, verifying, or publishing an IPA. See `Documentation/BUILD-PIPELINE.md`.
 
 `python Scripts/verify_package.py --root .` checks the project graph, assets, manifests, and package hashes. `node --test Backend/*.test.mjs` runs backend tests with Node 24. These commands alone do not prove native compilation or real-device behavior.
 
