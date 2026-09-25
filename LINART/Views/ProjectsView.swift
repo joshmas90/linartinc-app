@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ProjectsView: View {
     @EnvironmentObject private var store: AppStore
@@ -73,6 +74,8 @@ struct ProjectDetailView: View {
     @EnvironmentObject private var store: AppStore
     @State private var selectedPhoto: ProjectPhoto?
     @State private var photoIndex = 0
+    @State private var sharing = false
+    @EnvironmentObject private var studio: StudioStore
 
     var body: some View {
         ScrollView {
@@ -98,6 +101,7 @@ struct ProjectDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     SectionHeading(eyebrow: project.category, title: project.title)
                     Text(project.scope).foregroundStyle(Brand.secondary).lineSpacing(5)
+                    Text("The story in the details").font(.headline)
                     Label(project.location, systemImage: "mappin.and.ellipse")
                     Label(project.stage, systemImage: "square.stack.3d.up")
                     if project.photos.indices.contains(photoIndex) {
@@ -110,6 +114,8 @@ struct ProjectDetailView: View {
                     }.buttonStyle(PrimaryButtonStyle())
                     Button("Discuss a Similar Project") { store.startInquiry(service: project.service) }
                         .buttonStyle(SecondaryButtonStyle())
+                    Button("Include in my Studio brief", systemImage: "text.badge.plus") { studio.include(project) }
+                        .frame(minHeight: 44).disabled(!studio.isReady || studio.draft.ideas.contains(where: { $0.id == project.id }))
                 }.padding(24)
             }.frame(maxWidth: 820).frame(maxWidth: .infinity)
         }
@@ -122,12 +128,20 @@ struct ProjectDetailView: View {
                     Image(systemName: store.favorites.contains(project.id) ? "heart.fill" : "heart")
                 }
                 .accessibilityLabel(store.favorites.contains(project.id) ? "Remove saved project" : "Save project")
-                ShareLink(item: Company.projects, subject: Text(project.title), message: Text("\(project.title) — LINART Construction"))
+                Button("Share this project", systemImage: "square.and.arrow.up") { sharing = true }
             }
         }
         .fullScreenCover(item: $selectedPhoto) { photo in
             PhotoGalleryView(photos: project.photos, initialPhoto: photo.id)
         }
+        .sheet(isPresented: $sharing) {
+            StudioShareSheet(items: shareItems) { sharing = false }
+        }
+    }
+    private var shareItems: [Any] {
+        var items: [Any] = ["\(project.title)\nLINART Construction · \(project.location)\n\n\(project.scope)\n\n\(Company.website.absoluteString)"]
+        if let photo = project.photos.first, let image = UIImage(named: photo.asset) { items.append(image) }
+        return items
     }
 }
 
@@ -151,7 +165,7 @@ struct PhotoGalleryView: View {
             TabView(selection: $selection) {
                 ForEach(photos) { photo in
                     VStack(spacing: 18) {
-                        Image(photo.asset).resizable().scaledToFit().accessibilityLabel(photo.caption)
+                        ZoomablePhoto(asset: photo.asset, caption: photo.caption)
                         Text(photo.caption).font(.body).multilineTextAlignment(.center).padding(.horizontal, 24)
                         Spacer(minLength: 35)
                     }.tag(photo.id)

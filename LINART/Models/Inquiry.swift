@@ -1,6 +1,6 @@
 import Foundation
 
-struct Inquiry: Codable, Equatable {
+struct Inquiry: Codable, Equatable, Sendable {
     var name = ""
     var email = ""
     var phone = ""

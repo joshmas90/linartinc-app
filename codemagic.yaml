@@ -4,76 +4,18 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 45
     environment:
-      xcode: latest
+      xcode: 26.6
       vars:
         XCODE_PROJECT: LINART.xcodeproj
         XCODE_SCHEME: LINART
     scripts:
-      - name: Check project and resource configuration
-        script: |
-          #!/bin/bash
-          set -euo pipefail
-          mkdir -p build
-          test -f "$XCODE_PROJECT/project.pbxproj"
-          test -f "$XCODE_PROJECT/xcshareddata/xcschemes/$XCODE_SCHEME.xcscheme"
-          plutil -lint "$XCODE_PROJECT/project.pbxproj"
-          plutil -lint LINART/Resources/Info.plist
-          plutil -lint LINART/Resources/PrivacyInfo.xcprivacy
-          xcodebuild -version | tee build/xcode-version.log
-      - name: Build and test on an available iPhone simulator
-        script: |
-          #!/bin/bash
-          set -euo pipefail
-          xcrun simctl list devices available --json > build/simulators.json
-          SIMULATOR_ID=$(python3 - <<'PY'
-          import json
-          import re
-          from pathlib import Path
-
-          devices = json.loads(Path("build/simulators.json").read_text())["devices"]
-          candidates = []
-          for runtime, runtime_devices in devices.items():
-              match = re.fullmatch(r"com\.apple\.CoreSimulator\.SimRuntime\.iOS-(\d+(?:-\d+)*)", runtime)
-              if not match:
-                  continue
-              version = tuple(int(part) for part in match.group(1).split("-"))
-              if version < (17,):
-                  continue
-              for device in runtime_devices:
-                  if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
-                      candidates.append((version, device["name"], device["udid"]))
-          if not candidates:
-              raise SystemExit("No available iPhone simulator running iOS 17 or newer.")
-          print(max(candidates)[2])
-          PY
-          )
-          echo "Selected iPhone simulator: $SIMULATOR_ID"
-          set +e
-          xcodebuild test \
-            -project "$XCODE_PROJECT" \
-            -scheme "$XCODE_SCHEME" \
-            -configuration Debug \
-            -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
-            -destination-timeout 120 \
-            -parallel-testing-enabled NO \
-            -derivedDataPath build/DerivedData \
-            -resultBundlePath build/TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" 2>&1 | tee build/xcodebuild.log
-          build_status=$?
-          set -e
-          if [[ -d build/TestResults.xcresult ]]; then
-            ditto -c -k --sequesterRsrc --keepParent \
-              build/TestResults.xcresult build/TestResults.xcresult.zip
-          fi
-          exit "$build_status"
+      - name: Validate source and test the current commit
+        script: bash Scripts/validate_ios.sh
     artifacts:
       - build/xcode-version.log
       - build/simulators.json
-      - build/xcodebuild.log
-      - build/TestResults.xcresult.zip
+      - build/*-xcodebuild.log
+      - build/*-TestResults.xcresult
   linart-app-store-upload:
     name: LINART - Upload to App Store Connect (manual)
     instance_type: mac_mini_m2
@@ -81,7 +23,7 @@ workflows:
     integrations:
       app_store_connect: Codemagic CI
     environment:
-      xcode: latest
+      xcode: 26.6
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.linartinc.LINART
@@ -102,6 +44,8 @@ workflows:
           plutil -lint LINART/Resources/PrivacyInfo.xcprivacy
           [[ "${PROJECT_BUILD_NUMBER:?Codemagic project build number is missing}" =~ ^[1-9][0-9]*$ ]]
           xcodebuild -version
+      - name: Require tests to pass before signing and upload
+        script: bash Scripts/validate_ios.sh
       - name: Apply the LINART App Store signing profile
         script: |
           #!/bin/bash
@@ -153,6 +97,8 @@ workflows:
           print(f"Verified {info['CFBundleIdentifier']} build {info['CFBundleVersion']} for Apple upload.")
           PY
     artifacts:
+      - build/*-xcodebuild.log
+      - build/*-TestResults.xcresult
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
       - build/ios/xcarchive/*.xcarchive/dSYMs/*.dSYM

@@ -161,8 +161,7 @@ def verify(root, archive=None):
     excluded = {'.DS_Store', '.env'}
     forbidden_parts = {'node_modules', 'DerivedData', 'build', 'xcuserdata', '__pycache__'}
     require(not any(path.name in excluded or forbidden_parts.intersection(path.relative_to(root).parts) or path.suffix in ['.p12', '.mobileprovision', '.ipa', '.zip', '.pyc'] for path in files), 'Unexpected generated or sensitive file')
-    require(not (root / '.github/workflows').exists(), 'No automated build workflows should be present')
-    checks.append('No build workflows, dependencies, signing material or generated binaries in package')
+    checks.append('No dependencies, signing material or generated binaries in package')
     manifest_path = root / 'MANIFEST.sha256'
     if manifest_path.exists():
         manifest = {}

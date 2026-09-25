@@ -22,13 +22,13 @@ struct HomeView: View {
                                     ProjectCard(project: project)
                                 }.buttonStyle(.plain)
                             }
-                            Button("Explore all projects") { store.selectedTab = 1 }
+                            Button("Explore all projects") { store.selectedTab = .projects }
                                 .buttonStyle(SecondaryButtonStyle())
                             SectionHeading(eyebrow: "Made for your home", title: "One home. One standard.")
                                 .padding(.top, 12)
                             Text("From a thoughtful renovation to a new beginning, discover what we can create together.")
                                 .foregroundStyle(Brand.secondary).lineSpacing(4)
-                            Button("Discover our services") { store.selectedTab = 4 }
+                            Button("Discover our services") { store.selectedTab = .services }
                                 .buttonStyle(PrimaryButtonStyle())
                         } else {
                             CatalogUnavailableView()
@@ -43,42 +43,25 @@ struct HomeView: View {
     }
 
     private func hero(minHeight: CGFloat) -> some View {
-        // Only the photograph fills/crops. All words and actions participate in native layout.
-        VStack(alignment: .leading, spacing: 24) {
-            BrandWordmark(light: true)
-                .frame(maxWidth: .infinity).padding(.top, 16)
-            Spacer(minLength: 100)
-            VStack(alignment: .leading, spacing: 18) {
-                Eyebrow(title: "A higher standard. A better home.", light: true)
-                Text("Exceptional Spaces for Real Life")
-                    .font(.system(size: heroType, weight: .regular, design: .serif))
-                    .tracking(-0.8).foregroundStyle(.white)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-                Text("Custom construction and renovations across New Jersey.")
-                    .font(.body).foregroundStyle(.white.opacity(0.92)).lineSpacing(4)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button { store.selectedTab = 1 } label: {
-                    HStack { Text("View Our Work"); Spacer(); Image(systemName: "arrow.right") }
-                }.buttonStyle(PrimaryButtonStyle(light: true)).padding(.top, 4)
-            }
-            .frame(maxWidth: 560, alignment: .leading)
-        }
-        .padding(.horizontal, 28).padding(.bottom, 32)
-        .frame(maxWidth: .infinity, minHeight: max(540, minHeight), alignment: .leading)
-        .background {
+        VStack(alignment: .leading, spacing: 0) {
+            BrandWordmark().frame(maxWidth: .infinity).padding(.vertical, 28)
             GeometryReader { bounds in
-                Image("kitchen-remodeling")
-                    .resizable().scaledToFill()
-                    .frame(width: bounds.size.width, height: bounds.size.height)
-                    .clipped().accessibilityHidden(true)
-                LinearGradient(stops: [
-                    .init(color: .black.opacity(0.78), location: 0),
-                    .init(color: .black.opacity(0.10), location: 0.30),
-                    .init(color: .black.opacity(0.50), location: 0.53),
-                    .init(color: .black.opacity(0.94), location: 1)
-                ], startPoint: .top, endPoint: .bottom)
-            }
-        }
+                Image("kitchen-main").resizable().scaledToFill()
+                    .frame(width: bounds.size.width, height: bounds.size.height).clipped()
+                    .accessibilityLabel("A completed LINART kitchen with considered cabinetry and finishes")
+            }.frame(height: min(360, max(220, minHeight * 0.38)))
+            VStack(alignment: .leading, spacing: 18) {
+                Eyebrow(title: "Crafted around you")
+                Text("Exceptional spaces.\nReal life.")
+                    .font(.system(.largeTitle, design: .serif)).tracking(-0.6)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                Text("Custom construction and considered renovations across New Jersey.")
+                    .foregroundStyle(Brand.secondary).lineSpacing(4)
+                Button { store.selectedTab = .projects } label: {
+                    HStack { Text("Explore our work"); Spacer(); Image(systemName: "arrow.right") }
+                }.buttonStyle(PrimaryButtonStyle())
+                Button("Plan your project") { store.selectedTab = .studio }.buttonStyle(SecondaryButtonStyle())
+            }.padding(28).frame(maxWidth: 760, alignment: .leading).frame(maxWidth: .infinity)
+        }.background(Brand.cream)
     }
 }
