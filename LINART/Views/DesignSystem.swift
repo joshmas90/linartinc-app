@@ -11,6 +11,17 @@ enum Brand {
     static let bronze = Color(red: 115 / 255, green: 80 / 255, blue: 36 / 255)
 }
 
+enum PremiumLayout {
+    static let xs: CGFloat = 8
+    static let sm: CGFloat = 12
+    static let md: CGFloat = 20
+    static let lg: CGFloat = 28
+    static let xl: CGFloat = 40
+    // iOS 26's floating tab bar intentionally overlays content; keep the final
+    // planner controls comfortably above it rather than merely visible through it.
+    static let tabBarClearance: CGFloat = 104
+}
+
 struct BrandWordmark: View {
     var light = false
 
@@ -60,9 +71,15 @@ struct PrimaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity, minHeight: 24)
             .padding(.horizontal, 20).padding(.vertical, 15)
             .foregroundStyle(.white)
-            .background(LinearGradient(colors: [Brand.brass, Brand.bronze], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 9))
-            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Brand.gold.opacity(light ? 0.6 : 0.3)))
-            .opacity(configuration.isPressed ? 0.76 : 1)
+            .background(light ? Brand.paper.opacity(0.14) : Brand.ink, in: RoundedRectangle(cornerRadius: 11))
+            .overlay(
+                RoundedRectangle(cornerRadius: 11)
+                    .strokeBorder(light ? Brand.gold.opacity(0.55) : Brand.brass.opacity(0.48))
+            )
+            .shadow(color: .black.opacity(configuration.isPressed ? 0.03 : 0.08), radius: 10, y: 5)
+            .scaleEffect(configuration.isPressed ? 0.992 : 1)
+            .opacity(configuration.isPressed ? 0.88 : 1)
+            .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
     }
 }
 
@@ -72,10 +89,22 @@ struct SecondaryButtonStyle: ButtonStyle {
             .font(.subheadline.weight(.semibold))
             .frame(maxWidth: .infinity, minHeight: 24)
             .padding(.horizontal, 20).padding(.vertical, 14)
+            .foregroundStyle(Brand.ink)
+            .background(configuration.isPressed ? Brand.gold.opacity(0.12) : Brand.paper, in: RoundedRectangle(cornerRadius: 11))
+            .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(Brand.line))
+            .opacity(configuration.isPressed ? 0.78 : 1)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+}
+
+struct TertiaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.medium))
             .foregroundStyle(Brand.bronze)
-            .background(Brand.paper, in: RoundedRectangle(cornerRadius: 9))
-            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(Brand.bronze.opacity(0.65)))
-            .opacity(configuration.isPressed ? 0.7 : 1)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.58 : 1)
     }
 }
 
