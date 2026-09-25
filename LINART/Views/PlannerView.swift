@@ -14,87 +14,223 @@ struct PlannerView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                SectionHeading(eyebrow: "A thoughtful beginning", title: "My Project")
-                Text("Bring your plans together, one simple step at a time.")
-                    .foregroundStyle(Brand.secondary)
+            VStack(alignment: .leading, spacing: PremiumLayout.lg) {
+                VStack(alignment: .leading, spacing: PremiumLayout.sm) {
+                    SectionHeading(eyebrow: "A thoughtful beginning", title: "My Project")
+                    Text("A private place to shape the conversation before the first meeting.")
+                        .foregroundStyle(Brand.secondary)
+                        .lineSpacing(3)
+                }
+
                 StudioStatusView()
                 planningCard
-                DisclosureGroup("View all 5 steps", isExpanded: $stepsExpanded) {
-                    VStack(spacing: 10) {
-                        ForEach(StudioSection.allCases) { section in
-                            Button { open(section) } label: {
-                                StudioStepRow(section: section, current: studio.currentSection, draft: studio.draft)
-                            }.buttonStyle(.plain).disabled(!studio.isReady)
-                                .accessibilityIdentifier("openStep-\(section.id)")
-                        }
-                    }.padding(.top, 14)
-                }.padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+                projectPath
+                savedIdeas
+                preparationChecklist
 
-                DisclosureGroup("Saved portfolio ideas (\(savedProjects.count))", isExpanded: $inspirationExpanded) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        if savedProjects.isEmpty {
-                            Text("Save projects you love from the portfolio. You can also choose them in the inspiration step.")
-                                .foregroundStyle(Brand.secondary)
-                        }
-                        ForEach(savedProjects) { project in
-                            NavigationLink { ProjectDetailView(project: project) } label: {
-                                MenuRow(title: project.title, subtitle: "View this project", symbol: "heart")
-                            }.buttonStyle(.plain)
-                        }
-                        Button("Browse LINART projects") { store.selectedTab = .projects }
-                            .buttonStyle(SecondaryButtonStyle())
-                    }.padding(.top, 16)
-                }.padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
-
-                DisclosureGroup("Before we talk", isExpanded: $checklistExpanded) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        ForEach(AppStore.planningSteps, id: \.self) { step in
-                            Button { store.toggleStep(step) } label: {
-                                Label(step, systemImage: store.completedSteps.contains(step) ? "checkmark.square.fill" : "square")
-                                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                                    .multilineTextAlignment(.leading)
-                            }.buttonStyle(.plain)
-                                .accessibilityValue(store.completedSteps.contains(step) ? "Completed" : "Not completed")
-                        }
-                    }.padding(.top, 16)
-                }.padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
-
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Prefer to talk first?").font(.headline)
-                    Text("Send a short inquiry to start the conversation. You can work on your plan whenever you are ready.")
-                        .font(.subheadline).foregroundStyle(Brand.secondary)
+                VStack(alignment: .leading, spacing: PremiumLayout.sm) {
+                    Divider().overlay(Brand.line)
+                    Eyebrow(title: "Start a conversation")
+                    Text("Prefer to talk first?").font(.system(.title3, design: .serif)).foregroundStyle(Brand.ink)
+                    Text("Send a short inquiry now and return to your private project brief whenever you are ready.")
+                        .font(.subheadline).foregroundStyle(Brand.secondary).lineSpacing(3)
                     Button("Start a project inquiry") { store.startInquiry() }.buttonStyle(SecondaryButtonStyle())
                 }
+
                 NavigationLink { CloudStudioView() } label: {
                     MenuRow(title: "Sent briefs & account", subtitle: "Your submissions and sign-in settings", symbol: "person.crop.circle")
                 }.buttonStyle(.plain)
-            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
-        }.background(Brand.cream).navigationTitle("My Project").navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(isPresented: $store.studioRequested) { ProjectStudioView() }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+            .padding(.bottom, PremiumLayout.tabBarClearance)
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Brand.cream)
+        .navigationTitle("My Project")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $store.studioRequested) { ProjectStudioView() }
     }
 
     private var planningCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Eyebrow(title: studio.draft.hasProjectContent ? "Continue your plan" : "Your private project plan")
-            Text(studio.draft.hasProjectContent ? studio.draft.displayTitle : "Let's start with your space.")
-                .font(.system(.title, design: .serif)).foregroundStyle(Brand.ink)
-            Text("Details, photos, inspiration and timing — then a final review. Every question is optional.")
+        VStack(alignment: .leading, spacing: PremiumLayout.md) {
+            VStack(alignment: .leading, spacing: PremiumLayout.xs) {
+                Eyebrow(title: studio.draft.hasProjectContent ? "Current project" : "Private project plan")
+                Text(studio.draft.hasProjectContent ? studio.draft.displayTitle : "Let's start with your space.")
+                    .font(.system(.title, design: .serif))
+                    .foregroundStyle(Brand.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(projectStatus)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.ink)
+                Text("Details, photos, inspiration and timing come together here. Every question is optional.")
+                    .foregroundStyle(Brand.secondary)
+                    .lineSpacing(3)
+            }
+
+            VStack(alignment: .leading, spacing: PremiumLayout.xs) {
+                HStack {
+                    Text("STEP \(studio.currentSection.number) OF 5")
+                    Spacer()
+                    Text("\(completedPlanningSections) OF 4 SECTIONS SHAPED")
+                }
+                .font(.caption2.weight(.semibold))
+                .tracking(0.8)
                 .foregroundStyle(Brand.secondary)
-            Label("Step \(studio.currentSection.number) of 5 · \(studio.currentSection.title)", systemImage: studio.currentSection.symbol)
-                .font(.subheadline.weight(.medium)).foregroundStyle(Brand.bronze)
-                .fixedSize(horizontal: false, vertical: true)
+
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Brand.line).frame(height: 3)
+                        Capsule().fill(Brand.brass)
+                            .frame(width: proxy.size.width * CGFloat(max(completedPlanningSections, studio.draft.hasProjectContent ? 1 : 0)) / 4, height: 3)
+                    }
+                }
+                .frame(height: 3)
+                .accessibilityHidden(true)
+
+                Label(studio.currentSection.title, systemImage: studio.currentSection.symbol)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Brand.bronze)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             Button { open(studio.currentSection) } label: {
-                Label(studio.currentSection == .details && !studio.draft.hasProjectContent ? "Start planning" : "Continue planning", systemImage: "arrow.right")
-            }.buttonStyle(PrimaryButtonStyle()).disabled(!studio.isReady).accessibilityIdentifier("openStudio")
-            Text(studio.draft.contentSummary).font(.subheadline).foregroundStyle(Brand.secondary)
+                HStack {
+                    Text(studio.currentSection == .details && !studio.draft.hasProjectContent ? "Start planning" : studio.currentSection == .review ? "Review project" : "Continue planning")
+                    Spacer(minLength: 12)
+                    Image(systemName: "arrow.right").accessibilityHidden(true)
+                }
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(!studio.isReady)
+            .accessibilityIdentifier("openStudio")
+
+            if studio.draft.hasProjectContent {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.22)) { stepsExpanded = true }
+                } label: {
+                    Text("View project overview")
+                }
+                .buttonStyle(TertiaryButtonStyle())
+            }
+
+            Divider().overlay(Brand.line)
+
+            Text(studio.draft.contentSummary)
+                .font(.subheadline)
+                .foregroundStyle(Brand.secondary)
                 .accessibilityIdentifier("studioContentSummary")
-            Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary)
-            Text("Your draft stays on this device until you choose to share it.")
-                .font(.caption).foregroundStyle(Brand.secondary)
-        }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Brand.paper, in: RoundedRectangle(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Brand.line))
+            HStack(alignment: .firstTextBaseline, spacing: PremiumLayout.xs) {
+                Image(systemName: "lock").font(.caption2).foregroundStyle(Brand.bronze).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary)
+                    Text("Private on this device until you choose to share.")
+                        .font(.caption).foregroundStyle(Brand.secondary)
+                }
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Brand.line))
+        .shadow(color: .black.opacity(0.035), radius: 18, y: 8)
+    }
+
+    private var projectPath: some View {
+        DisclosureGroup(isExpanded: $stepsExpanded) {
+            VStack(spacing: 4) {
+                ForEach(StudioSection.allCases) { section in
+                    Button { open(section) } label: {
+                        StudioStepRow(section: section, current: studio.currentSection, draft: studio.draft)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!studio.isReady)
+                    .accessibilityIdentifier("openStep-\(section.id)")
+                }
+            }
+            .padding(.top, PremiumLayout.sm)
+        } label: {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Your project path").font(.headline).foregroundStyle(Brand.ink)
+                Text("\(completedPlanningSections) of 4 planning sections shaped · review is always available")
+                    .font(.caption).foregroundStyle(Brand.secondary)
+            }
+        }
+        .tint(Brand.bronze)
+        .padding(PremiumLayout.md)
+        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Brand.line))
+    }
+
+    private var savedIdeas: some View {
+        DisclosureGroup(isExpanded: $inspirationExpanded) {
+            VStack(alignment: .leading, spacing: PremiumLayout.sm) {
+                if savedProjects.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("No inspiration saved yet").font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
+                        Text("Browse completed LINART projects when you're ready. Saved favorites can become part of your project brief.")
+                            .font(.subheadline).foregroundStyle(Brand.secondary)
+                    }
+                }
+                ForEach(savedProjects) { project in
+                    NavigationLink { ProjectDetailView(project: project) } label: {
+                        MenuRow(title: project.title, subtitle: "View this project", symbol: "heart")
+                    }.buttonStyle(.plain)
+                }
+                Button("Browse LINART projects") { store.selectedTab = .projects }
+                    .buttonStyle(SecondaryButtonStyle())
+            }.padding(.top, PremiumLayout.sm)
+        } label: {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Saved portfolio ideas").font(.headline).foregroundStyle(Brand.ink)
+                Text(savedProjects.isEmpty ? "A quiet place for future inspiration" : "\(savedProjects.count) saved \(savedProjects.count == 1 ? "project" : "projects")")
+                    .font(.caption).foregroundStyle(Brand.secondary)
+            }
+        }
+        .tint(Brand.bronze)
+        .padding(PremiumLayout.md)
+        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Brand.line))
+    }
+
+    private var preparationChecklist: some View {
+        DisclosureGroup(isExpanded: $checklistExpanded) {
+            VStack(alignment: .leading, spacing: PremiumLayout.xs) {
+                ForEach(AppStore.planningSteps, id: \.self) { step in
+                    Button { store.toggleStep(step) } label: {
+                        Label(step, systemImage: store.completedSteps.contains(step) ? "checkmark.circle.fill" : "circle")
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(store.completedSteps.contains(step) ? Brand.ink : Brand.secondary)
+                    .accessibilityValue(store.completedSteps.contains(step) ? "Completed" : "Not completed")
+                }
+            }.padding(.top, PremiumLayout.sm)
+        } label: {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Before we talk").font(.headline).foregroundStyle(Brand.ink)
+                Text("A simple preparation checklist · completely optional")
+                    .font(.caption).foregroundStyle(Brand.secondary)
+            }
+        }
+        .tint(Brand.bronze)
+        .padding(PremiumLayout.md)
+        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Brand.line))
+    }
+
+    private var completedPlanningSections: Int {
+        StudioSection.allCases.filter { $0 != .review && $0.hasContent(in: studio.draft) }.count
+    }
+
+    private var projectStatus: String {
+        guard studio.draft.hasProjectContent else { return "Ready when you are." }
+        if studio.currentSection == .review { return "Your project brief is ready to review." }
+        if completedPlanningSections >= 3 { return "Your project is taking shape." }
+        if StudioSection.details.hasContent(in: studio.draft) { return "Your project foundation is saved." }
+        return "Your project has been started."
     }
 
     private func open(_ section: StudioSection) {
@@ -128,24 +264,64 @@ struct StudioStepRow: View {
     let current: StudioSection
     let draft: StudioDraft
 
+    private var hasContent: Bool { section.hasContent(in: draft) }
+
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            Text("\(section.number)").font(.headline)
-                .frame(width: 36, height: 36)
-                .foregroundStyle(section == current ? Brand.paper : Brand.bronze)
-                .background(section == current ? Brand.bronze : Brand.gold.opacity(0.25), in: Circle())
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(section.title).font(.subheadline.weight(.semibold)).foregroundStyle(Brand.ink)
-                Text(section == current ? "Continue here" : section == .review ? "Check your brief and choose how to send" : section.hasContent(in: draft) ? "Details added · edit anytime" : "Optional · add now or skip")
-                    .font(.caption).foregroundStyle(Brand.secondary)
-            }.fixedSize(horizontal: false, vertical: true)
+        HStack(alignment: .center, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(section == current ? Brand.ink : hasContent ? Brand.gold.opacity(0.34) : Brand.cream)
+                    .overlay(Circle().strokeBorder(section == current ? Brand.brass.opacity(0.7) : Brand.line))
+                if hasContent && section != current {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(Brand.bronze)
+                } else {
+                    Text("\(section.number)")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(section == current ? Brand.paper : Brand.secondary)
+                }
+            }
+            .frame(width: 36, height: 36)
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(section.title)
+                    .font(.subheadline.weight(section == current ? .semibold : .medium))
+                    .foregroundStyle(Brand.ink)
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundStyle(Brand.secondary)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+
             Spacer(minLength: 0)
-            Image(systemName: "chevron.right").font(.caption).foregroundStyle(Brand.bronze).accessibilityHidden(true)
-        }.frame(maxWidth: .infinity, minHeight: 48, alignment: .leading).padding(.vertical, 8)
-            .contentShape(Rectangle()).accessibilityElement(children: .combine)
-            .accessibilityLabel("Step \(section.number). \(section.title)")
-            .accessibilityValue(section == current ? "Current step" : section.hasContent(in: draft) ? "Details added" : "Optional")
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(section == current ? Brand.bronze : Brand.secondary.opacity(0.55))
+                .accessibilityHidden(true)
+        }
+        .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+        .padding(.horizontal, section == current ? 12 : 0)
+        .padding(.vertical, 7)
+        .background(section == current ? Brand.gold.opacity(0.10) : .clear, in: RoundedRectangle(cornerRadius: 10))
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Step \(section.number). \(section.title)")
+        .accessibilityValue(section == current ? "Current step" : hasContent ? "Details added" : "Optional")
+    }
+
+    private var statusText: String {
+        if section == current { return section == .review ? "Your brief is ready here" : "Continue here" }
+        if section == .review { return draft.hasProjectContent ? "Review your brief when you're ready" : "Your final review" }
+        guard hasContent else { return "Optional · add now or later" }
+        switch section {
+        case .details: return "Project foundation saved"
+        case .photos: return "Selected photos saved"
+        case .links: return "Inspiration saved"
+        case .timing: return "Planning horizon noted"
+        case .review: return "Review your brief"
+        }
     }
 }
 
@@ -159,10 +335,13 @@ struct StudioStepHeader: View {
             Eyebrow(title: "Step \(section.number) of \(StudioSection.allCases.count)")
             HStack(spacing: 8) {
                 ForEach(StudioSection.allCases) { step in
-                    Capsule().fill(step == section ? Brand.bronze : Brand.line)
-                        .frame(height: step == section ? 6 : 3)
+                    Capsule()
+                        .fill(step == section ? Brand.ink : step.hasContent(in: studio.draft) ? Brand.brass.opacity(0.58) : Brand.line)
+                        .frame(height: step == section ? 5 : 3)
                 }
-            }.accessibilityHidden(true)
+            }
+            .animation(.easeInOut(duration: 0.22), value: section)
+            .accessibilityHidden(true)
             Text(studio.draft.contentSummary).font(.caption).foregroundStyle(Brand.secondary)
             Text(section.title).font(.system(.title, design: .serif)).foregroundStyle(Brand.ink)
                 .accessibilityAddTraits(.isHeader)
@@ -201,7 +380,10 @@ struct ProjectStudioView: View {
             } else {
                 StudioEditorView(section: studio.currentSection)
             }
-        }.id(studio.currentSection)
+        }
+        .id(studio.currentSection)
+        .transition(.opacity.combined(with: .move(edge: .trailing)))
+        .animation(.easeInOut(duration: 0.22), value: studio.currentSection)
             .background(Brand.cream)
             .navigationTitle("My Project").navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -275,14 +457,18 @@ struct ProjectStudioView: View {
             }
             if studio.currentSection != .review && !editingFromReview && !studio.currentSection.hasContent(in: studio.draft) {
                 Button("Skip for now") { advance() }
-                    .font(.subheadline).frame(minHeight: 44)
+                    .buttonStyle(TertiaryButtonStyle())
                     .accessibilityIdentifier("studioSkip")
                     .disabled(!studio.isReady || closing)
             }
-        }.padding(.horizontal, 24).padding(.vertical, 12)
-            .frame(maxWidth: 760).frame(maxWidth: .infinity)
-            .background(Brand.paper)
-            .overlay(alignment: .top) { Divider() }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 10)
+        .padding(.bottom, 12)
+        .frame(maxWidth: 760)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial)
+        .overlay(alignment: .top) { Rectangle().fill(Brand.line).frame(height: 1) }
     }
 
     @ViewBuilder private var backButton: some View {
