@@ -40,7 +40,7 @@ struct StudioEditorView: View {
             }
             if section == .links { references }
             Section {
-                NavigationLink("Review & share", systemImage: "doc.text.magnifyingglass") { StudioReviewView() }
+                NavigationLink { StudioReviewView() } label: { Label("Review & share", systemImage: "doc.text.magnifyingglass") }
                 Button("Save now", systemImage: "square.and.arrow.down") { Task { await studio.flush() } }
                 Button("Clear my private Studio", role: .destructive) { confirmClear = true }
             }
@@ -58,10 +58,11 @@ struct StudioEditorView: View {
     }
 
     private var photos: some View {
-        Section {
+        let pickerTitle = studio.isImporting ? "Adding photos…" : "Add photos"
+        return Section {
             Picker("Photos you are adding", selection: $purpose) { ForEach(purposes, id: \.self) { Text($0).tag($0) } }.disabled(studio.isImporting)
             PhotosPicker(selection: $selections, maxSelectionCount: max(1, 8 - studio.draft.photos.count), matching: .images) {
-                Label(studio.isImporting ? "Adding photos…" : "Add photos", systemImage: "photo.badge.plus")
+                Label(pickerTitle, systemImage: "photo.badge.plus")
             }.disabled(studio.isImporting || studio.draft.photos.count >= 8)
             Text("Up to 8 photos, at 1,600 pixels or smaller. Imported copies stay in your Studio. Your originals are unchanged.").font(.caption).foregroundStyle(Brand.secondary)
             Picker("Show photos", selection: $filter) {
