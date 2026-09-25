@@ -119,8 +119,8 @@ struct StudioDraft: Codable, Equatable, Sendable {
         var parts: [String] = []
         if StudioSection.details.hasContent(in: self) { parts.append("Project details saved") }
         if !photos.isEmpty { parts.append("\(photos.count) \(photos.count == 1 ? "photo" : "photos")") }
-        if !ideas.isEmpty { parts.append("\(ideas.count) \(ideas.count == 1 ? "portfolio idea" : "portfolio ideas") }
-        if !references.isEmpty { parts.append("\(references.count) \(references.count == 1 ? "inspiration link" : "inspiration links") }
+        if !ideas.isEmpty { parts.append("\(ideas.count) \(ideas.count == 1 ? "portfolio idea" : "portfolio ideas")") }
+        if !references.isEmpty { parts.append("\(references.count) \(references.count == 1 ? "inspiration link" : "inspiration links")") }
         if StudioSection.timing.hasContent(in: self) { parts.append("Planning horizon noted") }
         return parts.isEmpty ? "Your brief is ready for a first detail" : parts.joined(separator: " · ")
     }
