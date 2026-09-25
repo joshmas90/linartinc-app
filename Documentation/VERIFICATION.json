@@ -7,20 +7,21 @@
     "Catalog: 7 projects, 7 services, 40 catalog photo references, 45 image assets",
     "Opaque 1024 x 1024 app icon and asset catalog file references validated",
     "No dependencies, signing material or generated binaries in package",
-    "SHA-256 manifest verified for 157 files",
-    "Tree-sitter Swift parsing passed for all 7 changed Swift files; this is not type checking"
+    "No new tree-sitter parse errors in 16 changed Swift files compared with parent revision; existing CloudStudioClient parser limitation unchanged",
+    "12 backend request/validation regression tests passed"
   ],
-  "file_count": 158,
+  "file_count": 159,
   "build_initiated": false,
   "xctest_executed": false,
   "date": "2026-09-25",
-  "revision": "Guided My Project",
-  "scope": "Static source and package verification only",
+  "revision": "My Project refinements",
+  "scope": "Static source/package checks and backend regression tests; no native build",
   "environment": "Linux workspace; no Xcode or Apple SDK",
-  "changed_swift_files_parsed": 7,
+  "changed_swift_files_parsed": 16,
   "limitations": [
-    "Apple compiler type checking and native iPhone/iPad tests were not run.",
-    "Updated XCTest and UI tests must run in the existing Xcode validation workflows.",
-    "No live inquiry, sign-in, submission, signing, or app distribution was performed."
-  ]
+    "No Apple compiler type checking, simulator or device run; this is not native release verification.",
+    "Extended XCTest and UI tests have not run in this Linux environment.",
+    "No live inquiry, sign-in email, submission, app build or distribution was performed."
+  ],
+  "backend_tests_passed": 12
 }

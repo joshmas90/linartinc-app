@@ -120,7 +120,7 @@ final class StudioStore: ObservableObject {
             revision = 0; savedAt = nil; hasUnsavedChanges = false; lastExportedAt = nil; shareURL = nil; exportError = nil
             currentSection = .details
             defaults.removeObject(forKey: Self.sectionKey)
-            notice = "Your local Studio and prepared exports were removed."
+            notice = "Your local project draft and saved PDFs were removed."
             state = .ready
         } catch {
             state = previousState
@@ -192,7 +192,7 @@ final class StudioStore: ObservableObject {
         shareURL = nil
         Task {
             do { try await persistence.removeExport(url) }
-            catch { notice = "A prepared export could not be removed. Clear local data to retry cleanup."; Diagnostics.shared.record(.exportCleanupFailed) }
+            catch { notice = "A temporary PDF could not be removed. Clear local data to retry cleanup."; Diagnostics.shared.record(.exportCleanupFailed) }
         }
     }
 

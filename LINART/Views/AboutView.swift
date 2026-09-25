@@ -86,7 +86,7 @@ struct SettingsView: View {
             Section {
                 Button("Clear all local app data", role: .destructive) { confirmReset = true }.disabled(studio.state == .clearing)
             } header: { Text("Saved on this device") } footer: {
-                Text("Removes saved ideas, checklist progress, the inquiry draft and private Studio photos and notes. Inquiries already sent to LINART are unaffected.")
+                Text("Removes saved ideas, checklist progress, the inquiry draft and private project photos and notes. Inquiries already sent to LINART are unaffected.")
             }
         }.scrollContentBackground(.hidden).background(Brand.cream)
             .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
@@ -181,20 +181,20 @@ struct PrivacyView: View {
             Section("On your device") {
                 Text("Saved project identifiers and checklist progress are stored in the app’s local preferences and may be included in your device backups. Use Clear all local app data in More → Settings to remove them.")
                 Text("Inquiry drafts remain in memory unless you enable Save this inquiry on my device. That option saves the draft in protected app files, which may be included in device backups. A successful submission or Clear removes the saved copy; deletion failures are reported.")
-                Text("Your optional Project Studio draft, inspiration links, notes and imported photo copies are stored on this device in protected app files. They may be included in device backups. Clear your studio from its screen, or clear all local data in More → Settings. Removing the app also removes its app data.")
+                Text("Your optional My Project draft, inspiration links, notes and imported photo copies are stored on this device in protected app files. They may be included in device backups. Clear your project from My Project, or clear all local data in More → Settings. Removing the app also removes its app data.")
             }
             Section("When you send an inquiry") {
                 Text("The form sends your name, email, phone number, project city or ZIP, selected service, timing, preferred contact method and optional project description over HTTPS to linartinc.com/contact.php.")
                 Text("LINART’s website service processes and stores inquiry details, records the request IP address and submission time, and emails the team so they can respond. Contact LINART about access to or deletion of an inquiry already sent.")
-                Text("The app does not run advertising, tracking or analytics SDKs. The optional Project Studio uses the system photo picker to access only images you select; it does not request broad photo library, camera, contacts or device location permissions.")
+                Text("The app does not run advertising, tracking or analytics SDKs. My Project uses the system photo picker to access only images you select; it does not request broad photo library, camera, contacts or device location permissions.")
             }
             Section("Other apps and services") {
                 Text("Calling, emailing, sharing or opening the website hands control to the app or service you choose. Their own privacy practices apply. Sharing a project brief exports a PDF containing the information you entered and the photos you added. You choose a destination and whether to send it; LINART cannot confirm delivery from this app. Your initial inquiry and shared PDF are not automatically linked by the server.")
             }
-            Section("Optional direct Studio submissions") {
-                Text("When you sign in and choose Send to LINART, your email-verified account, project answers, links, saved ideas and selected photo copies are processed by Supabase for LINART. App submissions use separate private storage and app-specific database tables. Nothing is uploaded during ordinary local planning.")
-                Text("Sign-in emails are sent through LINART’s Hostinger email service. Sign-in tokens are stored in the device Keychain and may survive reinstalling the app. Sign out to remove this device’s saved session. Clear local data does not delete a cloud submission; use Send to LINART → Your app submissions to delete it and its uploaded photos.")
-                Text("To delete your account, choose Send to LINART → Delete my app account. App uploads are removed immediately and new uploads are disabled. LINART completes the account-deletion request within 7 days and confirms by email, reviewing any shared LINART records separately. Your local Studio is kept until you clear it.")
+            Section("Optional project brief submissions") {
+                Text("When you sign in and choose Send my brief, your email-verified account, project answers, links, saved ideas and selected photo copies are processed by Supabase for LINART. App submissions use separate private storage and app-specific database tables. Nothing is uploaded during ordinary local planning.")
+                Text("Sign-in emails are sent through LINART’s Hostinger email service. Sign-in tokens are stored in the device Keychain and may survive reinstalling the app. Sign out to remove this device’s saved session. Clear local data does not delete a cloud submission; use My Project → Sent briefs & account → Your app submissions to delete it and its uploaded photos.")
+                Text("To delete your account, open My Project → Sent briefs & account → Delete my app account. App uploads are removed immediately and new uploads are disabled. LINART completes the account-deletion request within 7 days and confirms by email, reviewing any shared LINART records separately. Your local project draft is kept until you clear it.")
                 Text("A receipt confirms server storage only. LINART may already have downloaded a copy when you request deletion. Email services@linartinc.com for help with account records or information already received by the team.")
             }
             Section("Contact") { ContactActions() }

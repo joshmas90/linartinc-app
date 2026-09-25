@@ -16,7 +16,8 @@ On macOS run `bash Scripts/validate_ios.sh`; set `SIMULATOR_FAMILY=iPad` for the
 
 - Ivory/brass Home with an AI-refined kitchen hero based on LINART photography and a clean handoff from the existing welcome artwork.
 - Seven project collections, seven services, searchable offline galleries, pinch/double-tap zoom, project-specific sharing, saved ideas and notes.
-- Guided My Project: five numbered steps, Back/Continue/Skip controls, resume at the last step, and direct edits from the final review.
+- Guided My Project: five numbered steps, contextual prompts, Back/Continue/Skip controls, resume at the last step, and direct edits from the final review.
+- Larger inspiration previews, a concise project brief with optional additions, and a focused Verify & send flow with a confirmed submission receipt.
 - One shared draft for project details, photos, portfolio inspiration, web links, budget and timing; sharing begins only after review and explicit confirmation.
 - Protected, versioned local files, ordered background saves, recovery of a previous draft, visible storage errors, and reset protection against delayed work.
 - Up to eight selected photos, normalized to 1600 pixels with metadata removed and small editing thumbnails.
@@ -34,7 +35,7 @@ The owner's existing paid Supabase project is reused. App tables/bucket use lina
 
 ## Current evidence and release checks
 
-Documentation/GUIDED-MY-PROJECT.md tracks the latest navigation revision and its validation limits. Documentation/2026-09-25-AUDIT-REVISIONS.md describes the preceding audit. Earlier results do not verify the new guided flow. Consult the exact commit's GitHub Actions results for native evidence.
+Documentation/MY-PROJECT-REFINEMENTS.md tracks the latest planning refinements and validation limits. Documentation/GUIDED-MY-PROJECT.md describes the preceding navigation revision. Documentation/2026-09-25-AUDIT-REVISIONS.md describes the preceding audit. Earlier results do not verify the new guided flow. Consult the exact commit's GitHub Actions results for native evidence.
 
 Before public release: complete physical-device sign-in/upload/delete and share-sheet checks; verify iOS 17, small screens and accessibility text; update App Store privacy disclosures for photos/user content/user ID; publish the app privacy policy. LINART must monitor account-deletion requests and fulfill the seven-day target. No public App Store release is performed by the audit branch.
 

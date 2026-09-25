@@ -31,18 +31,22 @@ import Combine
             catch { if !Task.isCancelled { self.authenticationMessage = error.localizedDescription }; throw error }
             try Task.checkCancellation()
             self.email = try await self.client.signedInEmail()
-            self.notice = "Signed in. Review your brief and choose Send to LINART when ready."
+            self.notice = "Signed in. Review your brief and choose Verify & send when ready."
             self.authenticationMessage = self.notice
             try await self.loadRemoteState()
         }
     }
-    func send(draft: StudioDraft, persistence: StudioPersistence) {
+    func send(draft: StudioDraft, persistence: StudioPersistence, onSuccess: @escaping @MainActor (CloudReceipt) -> Void = { _ in }) {
         run {
             let receipt = try await self.client.submit(draft: draft, persistence: persistence)
             try Task.checkCancellation()
             self.lastReceipt = receipt
-            self.notice = "Your brief and selected photos were stored securely with LINART. Keep the receipt below for reference."
-            try await self.loadRemoteState()
+            self.receipts.removeAll { $0.id == receipt.id }
+            self.receipts.insert(receipt, at: 0)
+            self.notice = "Your project brief was received securely. Find the receipt in Sent briefs & account."
+            onSuccess(receipt)
+            // History refresh belongs to the account screen. A later refresh failure
+            // must not turn a confirmed submission into an apparent send failure.
         }
     }
     func refresh() { run { try await self.loadRemoteState() } }
@@ -58,7 +62,7 @@ import Combine
             try Task.checkCancellation()
             self.deletionRequest = request
             self.receipts = []; self.lastReceipt = nil
-            self.notice = "Your app uploads were removed. LINART will complete your account-deletion request within 7 days and confirm by email. Your local Studio remains on this device."
+            self.notice = "Your app uploads were removed. LINART will complete your account-deletion request within 7 days and confirm by email. Your local project draft remains on this device."
         }
     }
     func remove(_ receipt: CloudReceipt) {

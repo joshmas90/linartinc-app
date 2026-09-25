@@ -3,10 +3,12 @@ import UIKit
 
 struct StudioReviewView: View {
     @EnvironmentObject private var studio: StudioStore
+    @EnvironmentObject private var store: AppStore
     let onEdit: (StudioSection) -> Void
     let onSaveAndClose: () -> Void
     @State private var format: StudioExportMode = .projectBook
     @State private var showPDF = false
+    @State private var showOptional = false
 
     var body: some View {
         ScrollView {
@@ -21,15 +23,23 @@ struct StudioReviewView: View {
                         Button("Add project details") { onEdit(.details) }.buttonStyle(SecondaryButtonStyle())
                     }.padding(22).background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
                 }
-                projectPreview
-                photoPreview
-                inspirationPreview
-                timingPreview
+                if studio.draft.hasProjectContent {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Eyebrow(title: "Your project brief")
+                        Text(studio.draft.displayTitle).font(.system(.title, design: .serif))
+                        Text("Prepared by you · private until you share").font(.caption).foregroundStyle(Brand.secondary)
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                }
+                if StudioSection.details.hasContent(in: studio.draft) { projectPreview }
+                if StudioSection.photos.hasContent(in: studio.draft) { photoPreview }
+                if StudioSection.links.hasContent(in: studio.draft) { inspirationPreview }
+                if StudioSection.timing.hasContent(in: studio.draft) { timingPreview }
+                optionalDetails
                 VStack(alignment: .leading, spacing: 14) {
                     Text("Ready to share your plan?").font(.system(.title2, design: .serif))
                     Text("Send your brief and selected photos directly to LINART. You will verify your email and confirm before anything is sent.")
                         .foregroundStyle(Brand.secondary)
-                    Text("Use Send to LINART below, or save your draft and return whenever you are ready.")
+                    Text("Choose Verify & send below, or save your draft for later.")
                         .font(.footnote).foregroundStyle(Brand.secondary)
                     Button("Save for later", action: onSaveAndClose).buttonStyle(SecondaryButtonStyle())
                         .disabled(!studio.isReady).accessibilityIdentifier("studioSaveForLater")
@@ -42,6 +52,25 @@ struct StudioReviewView: View {
             })) {
                 if let url = studio.shareURL { StudioShareSheet(items: [url]) { studio.finishSharing(url) } }
             }
+    }
+
+    @ViewBuilder private var optionalDetails: some View {
+        if !studio.draft.unansweredSections.isEmpty {
+            DisclosureGroup("Optional details to add (\(studio.draft.unansweredSections.count))", isExpanded: $showOptional) {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("You can share what you have and discuss the rest later.").font(.subheadline).foregroundStyle(Brand.secondary)
+                    ForEach(studio.draft.unansweredSections) { section in
+                        Button { onEdit(section) } label: {
+                            Label("Add \(section.title.lowercased())", systemImage: "plus.circle")
+                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                                .multilineTextAlignment(.leading)
+                        }.buttonStyle(.plain).disabled(!studio.isReady)
+                            .accessibilityIdentifier("studioEdit-\(section.id)")
+                    }
+                }.padding(.top, 14)
+            }.padding(20).background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+                .accessibilityIdentifier("studioOptionalDetails")
+        }
     }
 
     private var projectPreview: some View {
@@ -81,6 +110,10 @@ struct StudioReviewView: View {
             }
             ForEach(studio.draft.ideas) { idea in
                 VStack(alignment: .leading, spacing: 5) {
+                    if let project = store.catalog?.projects.first(where: { $0.id == idea.id }),
+                       let photo = project.photos.first {
+                        PortfolioImage(photo: photo, height: 180)
+                    }
                     Text(idea.title).font(.subheadline.weight(.medium))
                     if !idea.note.isEmpty { Text(idea.note).foregroundStyle(Brand.secondary) }
                 }

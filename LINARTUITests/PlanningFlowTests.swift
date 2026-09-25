@@ -44,6 +44,17 @@ final class PlanningFlowTests: XCTestCase {
         app.buttons["studioContinue"].tap()
         XCTAssertTrue(app.buttons["studioSend"].waitForExistence(timeout: 5))
         capture("03-review", app)
+        XCTAssertFalse(app.buttons["studioEdit-photos"].exists, "Unanswered sections stay collapsed")
+        tapWhenVisible(app.buttons["studioOptionalDetails"], in: app)
+        tapWhenVisible(app.buttons["studioEdit-photos"], in: app)
+        XCTAssertTrue(app.buttons["studioAddPhotos"].waitForExistence(timeout: 5))
+        app.buttons["studioContinue"].tap()
+        tapWhenVisible(app.buttons["studioSend"], in: app)
+        XCTAssertTrue(app.textFields["projectSignInEmail"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Delete my app account"].exists)
+        XCTAssertFalse(app.buttons["Refresh submissions"].exists)
+        XCTAssertFalse(app.staticTexts["projectSendSuccess"].exists, "Opening send must never show an earlier receipt")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
         XCUIDevice.shared.orientation = .landscapeLeft
         settleRotation(app, landscape: true)
         capture("04-review-landscape", app)
@@ -128,6 +139,46 @@ final class PlanningFlowTests: XCTestCase {
         XCTAssertTrue(app.textFields["Ideal project timing"].waitForExistence(timeout: 5))
         app.buttons["studioSkip"].tap()
         XCTAssertFalse(app.buttons["studioSend"].isEnabled)
+    }
+
+    func testProjectGuidanceAndDeliberateInspirationSelection() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launch()
+        let welcome = app.buttons["Continue to LINART"]
+        if welcome.waitForExistence(timeout: 5), welcome.isHittable { welcome.tap() }
+        tab("More", app)
+        tapWhenVisible(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Settings,")).firstMatch, in: app)
+        app.buttons["Clear all local app data"].tap()
+        app.buttons["Clear local data"].tap()
+        tab("My Project", app)
+        tapWhenVisible(app.buttons["openStudio"], in: app)
+        tapWhenVisible(app.buttons["studioProjectType"], in: app)
+        app.buttons["Kitchen Remodeling"].tap()
+        let goals = app.textFields["What would you like to create?"]
+        tapWhenVisible(goals, in: app)
+        goals.typeText("Keep these personal notes.")
+        app.toolbars.buttons["Done"].tap()
+        tapWhenVisible(app.buttons["studioProjectType"], in: app)
+        app.buttons["Bathroom Remodeling"].tap()
+        XCTAssertEqual(goals.value as? String, "Keep these personal notes.")
+        app.buttons["studioContinue"].tap()
+        XCTAssertTrue(app.staticTexts["studioPhotoGuidance"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["studioPhotoGuidance"].label.contains("shower"))
+        app.buttons["studioSkip"].tap()
+        tapWhenVisible(app.buttons["studioChooseIdeas"], in: app)
+        let preview = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "studioPreview-")).firstMatch
+        tapWhenVisible(preview, in: app)
+        let add = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "studioIdea-")).firstMatch
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        XCTAssertTrue(add.isEnabled, "Previewing must not silently add inspiration")
+        add.tap()
+        XCTAssertFalse(add.isEnabled)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.navigationBars.buttons["Done"].tap()
+        chooseStep("review", in: app)
+        XCTAssertTrue(app.buttons["studioEdit-links"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["studioSend"].isEnabled)
     }
 
     private func chooseStep(_ id: String, in app: XCUIApplication) {

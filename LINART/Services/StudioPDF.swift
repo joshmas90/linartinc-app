@@ -31,7 +31,7 @@ enum StudioPDF {
             CONTACT
             \(draft.inquiryEmail.isEmpty ? "Not provided" : draft.inquiryEmail)
 
-            \(draft.photos.count) photos and \(draft.ideas.count) saved ideas are held in the homeowner’s Studio. Choose Project book to include the complete details and photographs.
+            \(draft.photos.count) photos and \(draft.ideas.count) saved ideas are held in the homeowner’s project draft. Choose Project book to include the complete details and photographs.
 
             This is a homeowner-prepared brief, not an estimate, booking or delivery receipt.
             """

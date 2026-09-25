@@ -180,8 +180,8 @@ struct InquiryView: View {
                 SectionHeading(eyebrow: "Thank you", title: "A thoughtful beginning.")
                 Text("Your inquiry was received. The LINART team will use your preferred contact method to respond.").lineSpacing(5)
                 if let notice = store.inquiryDraftNotice { Text(notice).font(.footnote) }
-                Text("Keep gathering photos and ideas in your private Studio. Your existing notes stay intact.").foregroundStyle(Brand.secondary)
-                Button("Continue to Project Studio") { store.selectedTab = .studio; store.studioRequested = true; dismiss() }.buttonStyle(PrimaryButtonStyle())
+                Text("Keep gathering photos and ideas in My Project. Your existing notes stay intact.").foregroundStyle(Brand.secondary)
+                Button("Continue to My Project") { store.selectedTab = .studio; store.studioRequested = true; dismiss() }.buttonStyle(PrimaryButtonStyle())
                 Button("Back to Home") { store.selectedTab = .home; dismiss() }.buttonStyle(SecondaryButtonStyle())
                 Text("An inquiry does not book an appointment or confirm a quote.").font(.caption).foregroundStyle(Brand.secondary)
             }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)

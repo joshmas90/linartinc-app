@@ -7,7 +7,7 @@ enum CloudStudioError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .message(let text): text
-        case .signedOut: "Sign in with your email before sending your Studio."
+        case .signedOut: "Sign in with your email before sending your project brief."
         case .keychain: "Your sign-in could not be saved securely on this device. Please try again."
         }
     }
@@ -216,12 +216,12 @@ actor CloudStudioClient {
         request.setValue(contentType, forHTTPHeaderField: "Content-Type")
         if let bearer { request.setValue("Bearer " + bearer, forHTTPHeaderField: "Authorization") }
         let (data, response) = try await network.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw CloudStudioError.message("No response was received. Your local Studio is safe.") }
+        guard let http = response as? HTTPURLResponse else { throw CloudStudioError.message("No response was received. Your local project draft is safe.") }
         if http.statusCode == 401 { throw CloudStudioError.signedOut }
         guard (200..<300).contains(http.statusCode) else {
             let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
             let message = object?["error_description"] as? String ?? object?["msg"] as? String ?? object?["error"] as? String
-            throw CloudStudioError.message(message ?? "The request could not be completed. Your local Studio is safe; retry when connected.")
+            throw CloudStudioError.message(message ?? "The request could not be completed. Your local project draft is safe; retry when connected.")
         }
         return data
     }

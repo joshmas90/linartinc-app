@@ -4,11 +4,11 @@ enum StudioStorageError: LocalizedError {
     case staleOperation, unreadableDraft, newerVersion, missingPhoto, unsafeFilename
     var errorDescription: String? {
         switch self {
-        case .staleOperation: return "This operation was cancelled because the Studio changed."
-        case .unreadableDraft: return "Your saved Studio could not be opened. It has been kept intact. Try again or recover the previous saved copy."
-        case .newerVersion: return "This Studio was saved by a newer app version. Update the app before editing it."
+        case .staleOperation: return "This operation was cancelled because the project changed."
+        case .unreadableDraft: return "Your saved project could not be opened. It has been kept intact. Try again or recover the previous saved copy."
+        case .newerVersion: return "This project was saved by a newer app version. Update the app before editing it."
         case .missingPhoto: return "A saved photo is unavailable. Remove or re-add it before exporting."
-        case .unsafeFilename: return "A Studio file reference is invalid. The saved draft has not been changed."
+        case .unsafeFilename: return "A project photo reference is invalid. The saved draft has not been changed."
         }
     }
 }

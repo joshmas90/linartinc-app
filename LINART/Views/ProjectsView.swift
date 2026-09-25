@@ -114,7 +114,7 @@ struct ProjectDetailView: View {
                     }.buttonStyle(PrimaryButtonStyle())
                     Button("Discuss a Similar Project") { store.startInquiry(service: project.service) }
                         .buttonStyle(SecondaryButtonStyle())
-                    Button("Include in my Studio brief", systemImage: "text.badge.plus") { studio.include(project) }
+                    Button("Include in my project brief", systemImage: "text.badge.plus") { studio.include(project) }
                         .frame(minHeight: 44).disabled(!studio.isReady || studio.draft.ideas.contains(where: { $0.id == project.id }))
                 }.padding(24)
             }.frame(maxWidth: 820).frame(maxWidth: .infinity)

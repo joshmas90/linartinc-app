@@ -87,6 +87,8 @@ struct PlannerView: View {
             Button { open(studio.currentSection) } label: {
                 Label(studio.currentSection == .details && !studio.draft.hasProjectContent ? "Start planning" : "Continue planning", systemImage: "arrow.right")
             }.buttonStyle(PrimaryButtonStyle()).disabled(!studio.isReady).accessibilityIdentifier("openStudio")
+            Text(studio.draft.contentSummary).font(.subheadline).foregroundStyle(Brand.secondary)
+                .accessibilityIdentifier("studioContentSummary")
             Text(studio.saveLabel).font(.caption).foregroundStyle(Brand.secondary)
             Text("Your draft stays on this device until you choose to share it.")
                 .font(.caption).foregroundStyle(Brand.secondary)
@@ -148,14 +150,20 @@ struct StudioStepRow: View {
 }
 
 struct StudioStepHeader: View {
+    @EnvironmentObject private var studio: StudioStore
     let section: StudioSection
     @AccessibilityFocusState private var headerFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(title: "Step \(section.number) of \(StudioSection.allCases.count)")
-            ProgressView(value: Double(section.number), total: Double(StudioSection.allCases.count))
-                .tint(Brand.bronze).accessibilityHidden(true)
+            HStack(spacing: 8) {
+                ForEach(StudioSection.allCases) { step in
+                    Capsule().fill(step == section ? Brand.bronze : Brand.line)
+                        .frame(height: step == section ? 6 : 3)
+                }
+            }.accessibilityHidden(true)
+            Text(studio.draft.contentSummary).font(.caption).foregroundStyle(Brand.secondary)
             Text(section.title).font(.system(.title, design: .serif)).foregroundStyle(Brand.ink)
                 .accessibilityAddTraits(.isHeader)
             Text(section.subtitle).foregroundStyle(Brand.secondary)
@@ -195,7 +203,7 @@ struct ProjectStudioView: View {
             }
         }.id(studio.currentSection)
             .background(Brand.cream)
-            .navigationTitle("Project planner").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("My Project").navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if !keyboardVisible { navigationFooter }
             }
@@ -291,8 +299,8 @@ struct ProjectStudioView: View {
 
     @ViewBuilder private var forwardButton: some View {
         if studio.currentSection == .review {
-            NavigationLink { CloudStudioView() } label: {
-                Text("Send to LINART").fixedSize(horizontal: false, vertical: true)
+            NavigationLink { ProjectSendView() } label: {
+                Text("Verify & send").fixedSize(horizontal: false, vertical: true)
             }.buttonStyle(PrimaryButtonStyle()).accessibilityIdentifier("studioSend")
                 .accessibilityHint("Verify your email and confirm before sending")
                 .disabled(!studio.isReady || studio.isImporting || !studio.draft.hasProjectContent || closing)

@@ -59,6 +59,32 @@ final class StudioReliabilityTests: XCTestCase {
         try await store.clear()
     }
 
+    func testGuidanceAndReviewDoNotChangeStoredClientAnswers() throws {
+        var draft = StudioDraft()
+        draft.projectType = "Kitchen Remodeling"
+        draft.goals = "Keep my own wording."
+        draft.photos = [StudioPhoto(filename: "room.jpg", purpose: "My space")]
+        let before = draft
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        let original = try encoder.encode(draft)
+        XCTAssertTrue(draft.guidance.photos.contains("kitchen"))
+        XCTAssertEqual(draft.unansweredSections, [.links, .timing])
+        XCTAssertTrue(draft.contentSummary.contains("1 photo"))
+        XCTAssertFalse(draft.contentSummary.contains("complete"))
+        XCTAssertEqual(try encoder.encode(draft), original)
+        XCTAssertEqual(draft, before)
+        draft.projectType = "Bathroom Remodeling"
+        XCTAssertTrue(draft.guidance.photos.contains("shower"))
+        XCTAssertEqual(draft.goals, before.goals)
+        XCTAssertEqual(draft.photos, before.photos)
+        let decoded = try JSONDecoder().decode(StudioDraft.self, from: encoder.encode(draft))
+        XCTAssertEqual(decoded, draft)
+        for service in Inquiry.serviceOptions {
+            XCTAssertFalse(ProjectGuidance.forType(service).photos.isEmpty)
+        }
+    }
+
     private func persistence() -> StudioPersistence {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("LINARTTests-\(UUID().uuidString)")
         return StudioPersistence(directory: root.appendingPathComponent("draft"), exportsDirectory: root.appendingPathComponent("exports"))

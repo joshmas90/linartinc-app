@@ -114,10 +114,23 @@ struct StudioDraft: Codable, Equatable, Sendable {
     }
     var isEmpty: Bool { self == StudioDraft() }
     var hasProjectContent: Bool { StudioSection.allCases.contains { $0.hasContent(in: self) } }
-    var displayTitle: String { projectType.isEmpty ? "Your next chapter at home" : projectType }
+    var displayTitle: String { projectType.isEmpty ? "Your project brief" : projectType }
+    var contentSummary: String {
+        var parts: [String] = []
+        if StudioSection.details.hasContent(in: self) { parts.append("Project details added") }
+        if !photos.isEmpty { parts.append("\(photos.count) \(photos.count == 1 ? "photo" : "photos")") }
+        if !ideas.isEmpty { parts.append("\(ideas.count) \(ideas.count == 1 ? "portfolio idea" : "portfolio ideas")") }
+        if !references.isEmpty { parts.append("\(references.count) \(references.count == 1 ? "link" : "links")") }
+        if StudioSection.timing.hasContent(in: self) { parts.append("Budget or timing added") }
+        return parts.isEmpty ? "No details added yet" : parts.joined(separator: " · ")
+    }
+    var unansweredSections: [StudioSection] {
+        StudioSection.allCases.filter { $0 != .review && !$0.hasContent(in: self) }
+    }
+    var guidance: ProjectGuidance { ProjectGuidance.forType(projectType) }
     var brief: String {
         var sections = [
-            "LINART PROJECT STUDIO — CLIENT-SHARED BRIEF",
+            "LINART — CLIENT-SHARED PROJECT BRIEF",
             "Email used for inquiry: \(inquiryEmail.isEmpty ? "Not provided" : inquiryEmail)",
             "Project type: \(projectType.isEmpty ? "Not provided" : projectType)"
         ]
@@ -139,4 +152,66 @@ struct StudioEnvelope: Codable, Sendable {
     let schemaVersion: Int
     let savedAt: Date
     let draft: StudioDraft
+}
+
+// Presentation copy only: changing the project type never overwrites client answers.
+struct ProjectGuidance {
+    let goal: String
+    let currentSpace: String
+    let style: String
+    let priorities: String
+    let photos: String
+
+    static func forType(_ type: String) -> Self {
+        switch type {
+        case "Kitchen Remodeling":
+            return Self(goal: "For example, a brighter kitchen with more storage.",
+                        currentSpace: "How do the layout, storage and work surfaces work for you today?",
+                        style: "For example, warm wood cabinetry and simple stone finishes.",
+                        priorities: "More storage, easier cooking, or room to gather?",
+                        photos: "Show the full kitchen, the cabinets and any walls or areas you would like to change.")
+        case "Bathroom Remodeling":
+            return Self(goal: "For example, a calmer bathroom with a walk-in shower.",
+                        currentSpace: "What would you change about the shower, vanity or layout?",
+                        style: "For example, soft-toned tile and warm metal fixtures.",
+                        priorities: "Easier access, better storage, or a larger shower?",
+                        photos: "Show the room from the doorway, then the shower, vanity and areas you want to improve.")
+        case "Home Addition":
+            return Self(goal: "For example, more living space connected to the kitchen.",
+                        currentSpace: "Where might the addition connect to your existing home?",
+                        style: "Should the addition match your home or introduce a different feel?",
+                        priorities: "More family space, a new bedroom, or better indoor-outdoor access?",
+                        photos: "Show the outside of your home, the proposed area and the rooms it would connect to.")
+        case "Whole-Home Renovation":
+            return Self(goal: "For example, a more connected layout and consistent finishes throughout.",
+                        currentSpace: "Which rooms work well, and which feel ready for a change?",
+                        style: "What materials or finishes would you like to carry through the home?",
+                        priorities: "Better flow, updated systems, or renovating in stages?",
+                        photos: "Start with the main living spaces and the connections between rooms you want to change.")
+        case "New Custom Home Construction":
+            return Self(goal: "For example, a light-filled home with room for family and guests.",
+                        currentSpace: "Tell us about your lot or where you are in the search for one.",
+                        style: "What architecture, materials or homes inspire you?",
+                        priorities: "Room count, accessibility, outdoor space, or room to grow?",
+                        photos: "Add lot photos, inspiration or early drawings if you have them. A site is not required to start planning.")
+        case "Basement Finishing":
+            return Self(goal: "For example, a comfortable family room and a separate workspace.",
+                        currentSpace: "Describe the current space, ceiling height and anything that needs attention.",
+                        style: "For example, warm flooring and bright, comfortable lighting.",
+                        priorities: "Storage, a guest area, entertainment, or a quiet workspace?",
+                        photos: "Show wide views, stairs, windows and any utilities or areas that need attention.")
+        case "Deck / Patio Construction":
+            return Self(goal: "For example, an outdoor dining area with room to relax.",
+                        currentSpace: "How does the outdoor space connect to your home today?",
+                        style: "For example, natural wood tones, simple railings or stone paving.",
+                        priorities: "Dining, shade, easier access, or low-maintenance materials?",
+                        photos: "Show the back of your home, existing doors and the yard or area you want to use.")
+        default:
+            return Self(goal: "Tell us what you would like to create. A sentence or two is enough.",
+                        currentSpace: "Tell us what works and what you would like to change.",
+                        style: "Describe any finishes, materials or spaces you like.",
+                        priorities: "What would make the biggest difference to how you use your home?",
+                        photos: "A wide view is a useful start. Add details, inspiration or drawings if you have them.")
+        }
+    }
 }

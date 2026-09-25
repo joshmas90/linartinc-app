@@ -51,18 +51,18 @@ struct StudioEditorView: View {
                 Picker("Project type", selection: $studio.draft.projectType) {
                     Text("Not decided yet").tag("")
                     ForEach(Inquiry.serviceOptions, id: \.self) { Text($0).tag($0) }
-                }
+                }.accessibilityIdentifier("studioProjectType")
                 StudioField(title: "What would you like to create?", text: $studio.draft.goals,
-                            placeholder: "For example, a brighter kitchen with more storage.")
+                            placeholder: studio.draft.guidance.goal)
                 StudioField(title: "What does the space look like today?", text: $studio.draft.existingConditions,
-                            placeholder: "Tell us what works and what you would like to change.")
+                            placeholder: studio.draft.guidance.currentSpace)
             }
             Section {
                 DisclosureGroup("More project details", isExpanded: $moreDetails) {
                     StudioField(title: "Style, finishes or materials you like", text: $studio.draft.style,
-                                placeholder: "For example, warm wood and simple, clean lines.")
+                                placeholder: studio.draft.guidance.style)
                     StudioField(title: "What matters most to you?", text: $studio.draft.priorities,
-                                placeholder: "More storage, accessibility, room for family…")
+                                placeholder: studio.draft.guidance.priorities)
                     StudioField(title: "Existing plans, constraints or site access", text: $studio.draft.constraints)
                     StudioField(title: "Anything else we should know?", text: $studio.draft.other)
                     StudioField(title: "Your inquiry email", text: $studio.draft.inquiryEmail, email: true,
@@ -77,6 +77,8 @@ struct StudioEditorView: View {
     private var photos: some View {
         Group {
             Section {
+                Text(studio.draft.guidance.photos).foregroundStyle(Brand.secondary)
+                    .accessibilityIdentifier("studioPhotoGuidance")
                 Picker("Type of photo", selection: $purpose) {
                     ForEach(purposes, id: \.self) { Text($0).tag($0) }
                 }.disabled(studio.isImporting)
@@ -229,37 +231,77 @@ struct StudioIdeasPicker: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Text("Tap a project to include it in your brief. You can add a note about the details you love afterward.")
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 24) {
+                    Text("Explore the details, then add the projects that speak to you. Your saved favorites appear first.")
                         .foregroundStyle(Brand.secondary)
-                }
-                ForEach(projects) { project in
-                    let included = studio.draft.ideas.contains { $0.id == project.id }
-                    Button { studio.include(project) } label: {
-                        HStack(alignment: .top, spacing: 14) {
-                            if let photo = project.photos.first {
-                                Image(photo.asset).resizable().scaledToFill().frame(width: 64, height: 64)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8)).accessibilityHidden(true)
-                            }
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(project.title).font(.headline).foregroundStyle(Brand.ink)
-                                Text(included ? "Included in your brief" : store.favorites.contains(project.id) ? "Saved favorite · tap to include" : "Tap to include")
-                                    .font(.caption).foregroundStyle(Brand.secondary)
-                            }.fixedSize(horizontal: false, vertical: true)
-                            Spacer(minLength: 0)
-                            Image(systemName: included ? "checkmark.circle.fill" : "plus.circle").foregroundStyle(Brand.bronze)
-                        }.padding(.vertical, 8)
-                    }.buttonStyle(.plain).disabled(included || !studio.isReady)
-                        .accessibilityIdentifier("studioIdea-\(project.id)")
-                }
-                if projects.isEmpty {
-                    Text("The portfolio could not be loaded. Your plan is still available; you can add ideas later.")
-                        .foregroundStyle(Brand.secondary)
-                }
-            }.navigationTitle("Choose inspiration").navigationBarTitleDisplayMode(.inline)
+                    ForEach(projects) { project in
+                        VStack(alignment: .leading, spacing: 16) {
+                            if let photo = project.photos.first { PortfolioImage(photo: photo, height: 210) }
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(project.title).font(.system(.title3, design: .serif)).foregroundStyle(Brand.ink)
+                                if store.favorites.contains(project.id) {
+                                    Label("Saved favorite", systemImage: "heart.fill").font(.caption).foregroundStyle(Brand.bronze)
+                                }
+                                Text(project.scope).font(.subheadline).foregroundStyle(Brand.secondary).lineLimit(3)
+                                NavigationLink { StudioInspirationDetail(project: project) } label: {
+                                    Label("View project", systemImage: "photo.on.rectangle")
+                                }.buttonStyle(SecondaryButtonStyle()).accessibilityIdentifier("studioPreview-\(project.id)")
+                                StudioIncludeIdeaButton(project: project)
+                            }.padding([.horizontal, .bottom], 20)
+                        }.background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    if projects.isEmpty {
+                        Text("The portfolio could not be loaded. Your plan is still available; you can add ideas later.")
+                            .foregroundStyle(Brand.secondary)
+                    }
+                }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+            }.background(Brand.cream).navigationTitle("Choose inspiration").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }.tint(Brand.bronze)
+    }
+}
+
+struct StudioIncludeIdeaButton: View {
+    let project: PortfolioProject
+    @EnvironmentObject private var studio: StudioStore
+    private var included: Bool { studio.draft.ideas.contains { $0.id == project.id } }
+    var body: some View {
+        Button { studio.include(project) } label: {
+            Label(included ? "Added to your brief" : "Add to my brief", systemImage: included ? "checkmark.circle.fill" : "plus.circle")
+                .fixedSize(horizontal: false, vertical: true)
+        }.buttonStyle(PrimaryButtonStyle()).disabled(included || !studio.isReady)
+            .accessibilityIdentifier("studioIdea-\(project.id)")
+    }
+}
+
+// A focused preview stays inside the planner and never opens an inquiry or changes tabs.
+struct StudioInspirationDetail: View {
+    let project: PortfolioProject
+    @State private var selectedPhoto: ProjectPhoto?
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                SectionHeading(eyebrow: project.category, title: project.title)
+                Text(project.scope).foregroundStyle(Brand.secondary)
+                Label(project.location, systemImage: "mappin.and.ellipse").font(.subheadline)
+                ForEach(project.photos) { photo in
+                    VStack(alignment: .leading, spacing: 10) {
+                        Button { selectedPhoto = photo } label: { PortfolioImage(photo: photo, height: 240) }
+                            .buttonStyle(.plain).accessibilityLabel("View photo: \(photo.caption)")
+                        Text(photo.caption).font(.subheadline).foregroundStyle(Brand.secondary)
+                    }
+                }
+            }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
+        }.background(Brand.cream).navigationTitle("Project inspiration").navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                StudioIncludeIdeaButton(project: project).padding(20).frame(maxWidth: 760)
+                    .frame(maxWidth: .infinity).background(Brand.paper)
+            }
+            .fullScreenCover(item: $selectedPhoto) { photo in
+                PhotoGalleryView(photos: project.photos, initialPhoto: photo.id)
+            }
     }
 }
 
