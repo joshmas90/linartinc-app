@@ -44,9 +44,9 @@ final class PlanningFlowTests: XCTestCase {
         app.buttons["studioContinue"].tap()
         XCTAssertTrue(app.buttons["studioSend"].waitForExistence(timeout: 5))
         capture("03-review", app)
-        XCTAssertFalse(app.buttons["studioEdit-photos"].exists, "Unanswered sections stay collapsed")
-        tapWhenVisible(app.buttons["studioOptionalDetails"], in: app)
-        tapWhenVisible(app.buttons["studioEdit-photos"], in: app)
+        XCTAssertFalse(identified("studioEdit-photos", in: app).exists, "Unanswered sections stay collapsed")
+        tapWhenVisible(identified("studioOptionalDetails", in: app), in: app)
+        tapWhenVisible(identified("studioEdit-photos", in: app), in: app)
         XCTAssertTrue(app.buttons["studioAddPhotos"].waitForExistence(timeout: 5))
         app.buttons["studioContinue"].tap()
         tapWhenVisible(app.buttons["studioSend"], in: app)
@@ -171,7 +171,8 @@ final class PlanningFlowTests: XCTestCase {
         let preview = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@", "studioPreview-")).firstMatch
         tapWhenVisible(preview, in: app)
-        let add = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "studioIdea-")).firstMatch
+        let add = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "studioIdea-")).firstMatch
         XCTAssertTrue(add.waitForExistence(timeout: 5))
         XCTAssertTrue(add.isEnabled, "Previewing must not silently add inspiration")
         add.tap()
@@ -200,6 +201,12 @@ final class PlanningFlowTests: XCTestCase {
     private func chooseStep(_ id: String, in app: XCUIApplication) {
         app.buttons["studioSteps"].tap()
         tapWhenVisible(app.buttons["studio-\(id)"], in: app)
+    }
+
+    private func identified(_ id: String, in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier == %@", id))
+            .firstMatch
     }
 
     private func tapWhenVisible(_ element: XCUIElement, in app: XCUIApplication) {
