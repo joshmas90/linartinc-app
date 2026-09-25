@@ -249,8 +249,10 @@ struct StudioIdeasPicker: View {
                                 }.buttonStyle(SecondaryButtonStyle()).accessibilityIdentifier("studioPreview-\(project.id)")
                                 StudioIncludeIdeaButton(project: project)
                             }.padding([.horizontal, .bottom], 20)
-                        }.background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .accessibilityElement(children: .contain)
+                        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
                     if projects.isEmpty {
                         Text("The portfolio could not be loaded. Your plan is still available; you can add ideas later.")
