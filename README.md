@@ -14,7 +14,7 @@ On macOS run `bash Scripts/validate_ios.sh`; set `SIMULATOR_FAMILY=iPad` for the
 
 ## Features
 
-- Ivory/brass Home with real LINART photography and a clean handoff from the existing welcome artwork.
+- Ivory/brass Home with an AI-refined kitchen hero based on LINART photography and a clean handoff from the existing welcome artwork.
 - Seven project collections, seven services, searchable offline galleries, pinch/double-tap zoom, project-specific sharing, saved ideas and notes.
 - Studio-first My Project, with one shared draft across photos, planning, investment/timing, links and review.
 - Protected, versioned local files, ordered background saves, recovery of a previous draft, visible storage errors, and reset protection against delayed work.

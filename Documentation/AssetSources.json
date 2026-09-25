@@ -283,6 +283,22 @@
       "format": "RGB PNG",
       "sha256": "361a6f00e638dbf127e1b55b589b4feca727e0fc3cecc99f2db5138e75d0caa6",
       "notes": "Documentation/SPLASH-ARTWORK.md"
+    },
+    {
+      "asset": "kitchen-hero",
+      "source": "LINART/Resources/Assets.xcassets/kitchen-main.imageset/kitchen-main.jpg",
+      "source_sha256": "5663fa424572a7853bb2eefea5a9d5b72e6ffee9fee317a4bbb076466b688015",
+      "created": "2026-09-25",
+      "method": "Built-in imagegen photographic refinement, followed by metadata-free quality-90 JPEG encoding",
+      "usage": "Home hero only; AI-refined editorial visualization based on an existing LINART kitchen photograph.",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "format": "RGB JPEG",
+      "bytes": 430131,
+      "sha256": "075908cb3b1cd8832f65d497903e06f29c49c4a108faa6fa169ba426f3de9c6c",
+      "prompt": "Use case: lighting-weather / photographic refinement.\nAsset type: the LINART native iPhone and iPad app home hero photograph.\nInput image 1 is the edit target and exact kitchen reference. Create one polished, photorealistic, landscape 3:2 version of this same kitchen, composed as a premium residential renovation hero image. This is a photo enhancement, not a different kitchen design.\nPreserve the real room layout and perspective, white shaker cabinets, white subway tile with dark grout, wide three-part window over the white apron farmhouse sink, chrome gooseneck faucet, stainless dishwasher to the sink's right, glazed back door on the right, stainless range at the left edge, warm dark wood floor, and the small white island edge at the right. Keep the architecture, sizes and physical relationships faithful.\nImprove the exposure to soft, luminous, naturally balanced daylight. White cabinets should be clean warm white, with subtle shadows and crisp realistic joinery; wood warm and rich, not orange; the window retains outdoor tree detail instead of blowing out. Correct lens distortion and maintain straight architectural verticals. Refine the camera crop with much less blank ceiling and floor, focusing on cabinets, window, sink and counters. Keep the sink, window and cabinetry readable in the central horizontal half so the photo also works when vertically cropped to a wide iPad banner.\nTastefully simplify movable countertop clutter: remove the toaster, coffee maker, red seasonal wrapping, paper towel roll, dish drying items, cleaning soap and cookware. Retain one simple wood board, a modest white bowl of fruit, and the small window plant. No new furnishings or luxury upgrades. Natural photographic texture, believable reflections, fine detail, restrained editorial color grading; no excessive HDR, no glowing outlines or plasticky render look.\nOutput only the clean kitchen photograph. No logo, text, wordmark, buttons, app interface, borders, vignettes, bathroom, or bathtub. High-resolution landscape image, preferably 2400 by 1600 pixels."
     }
   ]
 }

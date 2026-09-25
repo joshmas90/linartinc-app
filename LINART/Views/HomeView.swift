@@ -46,9 +46,9 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 0) {
             BrandWordmark().frame(maxWidth: .infinity).padding(.vertical, 28)
             GeometryReader { bounds in
-                Image("bath-main").resizable().scaledToFill()
+                Image("kitchen-hero").resizable().scaledToFill()
                     .frame(width: bounds.size.width, height: bounds.size.height).clipped()
-                    .accessibilityLabel("A LINART bathroom with a freestanding tub, black fixtures and geometric tile")
+                    .accessibilityLabel("Bright kitchen with white cabinetry, a farmhouse sink and warm wood flooring")
             }.frame(height: min(360, max(220, minHeight * 0.38)))
             VStack(alignment: .leading, spacing: 18) {
                 Eyebrow(title: "Crafted around you")
