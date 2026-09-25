@@ -85,15 +85,23 @@ final class PlanningFlowTests: XCTestCase {
         else {
             // iPad floating tabs may be exposed as cells after rotation on iOS 26.
             let target = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", name)).firstMatch
-            if !target.exists {
-                let page = app.buttons[name == "More" ? "Next Page" : "Previous Page"]
-                if page.exists { page.tap() }
+            let nextPage = app.buttons["Next Page"]
+            // UIKit can expose a clipped tab as existing/hittable even though
+            // its center lies underneath the paging control. Reveal it first.
+            if nextPage.exists && (!target.exists || target.frame.maxX > nextPage.frame.minX) {
+                nextPage.tap()
+            } else if !target.exists {
+                let previousPage = app.buttons["Previous Page"]
+                if previousPage.exists { previousPage.tap() }
             }
             if !target.waitForExistence(timeout: 5) { print(app.debugDescription) }
             XCTAssertTrue(target.exists); target.tap()
         }
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
+        let settled = expectation(description: "Navigation animation settled")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { settled.fulfill() }
+        wait(for: [settled], timeout: 2)
         let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         screenshot.name = name; screenshot.lifetime = .keepAlways; add(screenshot)
     }

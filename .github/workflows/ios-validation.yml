@@ -1,7 +1,5 @@
 name: iOS validation
 on:
-  push:
-    branches: [codex/app-audit-revisions]
   pull_request:
   workflow_dispatch:
 permissions:

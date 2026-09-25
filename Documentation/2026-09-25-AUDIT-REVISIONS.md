@@ -39,7 +39,7 @@ Automatic approval review rejected a permanent shared Auth-user deletion path be
 
 ## Native validation and limits
 
-Twenty unit tests passed on both iPhone Air and iPad mini simulators with Xcode 26.6. The UI suite additionally exercises Studio editing/review, inquiry validation, reset, landscape and accessibility text. The exact branch commit's GitHub Actions run is the authoritative final status; intermediate runs exposed and corrected a Keychain compile error and UI-test selector differences.
+Twenty-two unit tests cover inquiry validation/network behavior, Studio persistence/recovery/reset, photo normalization and long PDF pagination. The two UI walkthroughs additionally exercise Studio editing/review, inquiry validation, reset, landscape and accessibility text. Both suites run on iPhone Air and iPad mini simulators with Xcode 26.6. The exact branch commit's GitHub Actions run is the authoritative final status; intermediate runs exposed and corrected a Keychain compile error and UI-test selector differences.
 
 Windows cannot execute the signed iOS app. The owner-supplied recording covers the baseline, not the revised build. Physical-device email callback, real photo import/share destinations, interrupted live upload/delete and iOS 17 behavior remain release checks. These are not claimed as tested by a server receipt or a passing source-package check.
 
