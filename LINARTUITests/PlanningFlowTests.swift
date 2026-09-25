@@ -167,7 +167,9 @@ final class PlanningFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["studioPhotoGuidance"].label.contains("shower"))
         app.buttons["studioSkip"].tap()
         tapWhenVisible(app.buttons["studioChooseIdeas"], in: app)
-        let preview = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "studioPreview-")).firstMatch
+        // SwiftUI NavigationLink can surface as either a button or link across iOS simulator releases.
+        let preview = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH %@", "studioPreview-")).firstMatch
         tapWhenVisible(preview, in: app)
         let add = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "studioIdea-")).firstMatch
         XCTAssertTrue(add.waitForExistence(timeout: 5))
