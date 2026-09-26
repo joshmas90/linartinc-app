@@ -3,7 +3,10 @@ import PhotosUI
 
 struct StudioEditorView: View {
     let section: StudioSection
+    @Binding var detailsScrollCueDismissed: Bool
     @EnvironmentObject private var studio: StudioStore
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var selections: [PhotosPickerItem] = []
     @State private var purpose = "My space"
     @State private var filter = "All"
@@ -37,7 +40,27 @@ struct StudioEditorView: View {
                     }
                 }
             }.disabled(!studio.isReady)
-        }.scrollContentBackground(.hidden).background(Brand.cream).scrollDismissesKeyboard(.interactively)
+        }
+        .scrollContentBackground(.hidden)
+        .background(Brand.cream)
+        .scrollDismissesKeyboard(.interactively)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 6)
+                .onChanged { value in
+                    guard shouldShowScrollCue, abs(value.translation.height) > 6 else { return }
+                    withAnimation(.easeOut(duration: 0.18)) {
+                        detailsScrollCueDismissed = true
+                    }
+                }
+        )
+        .overlay(alignment: .bottom) {
+            if shouldShowScrollCue {
+                StudioScrollCue()
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+        }
             .onChange(of: selections) { _, items in
                 guard !items.isEmpty else { return }
                 studio.importPhotos(items, purpose: purpose); selections = []
@@ -52,6 +75,13 @@ struct StudioEditorView: View {
                 moreDetails = [draft.style, draft.priorities, draft.constraints, draft.other, draft.inquiryEmail]
                     .contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
             }
+    }
+
+    private var shouldShowScrollCue: Bool {
+        section == .details &&
+        !detailsScrollCueDismissed &&
+        horizontalSizeClass == .compact &&
+        !dynamicTypeSize.isAccessibilitySize
     }
 
     private var details: some View {
@@ -258,6 +288,38 @@ struct StudioEditorView: View {
                 .accessibilityIdentifier("studioChooseIdeas")
             } header: {
                 Text("Ideas from LINART projects · optional")
+            }
+        }
+    }
+}
+
+private struct StudioScrollCue: View {
+    @State private var nudged = false
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            LinearGradient(
+                colors: [Brand.cream.opacity(0), Brand.cream.opacity(0.94)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 54)
+
+            VStack(spacing: 2) {
+                Image(systemName: "chevron.down")
+                    .font(.caption2.weight(.semibold))
+                    .offset(y: nudged ? 2 : -1)
+                Text("More below")
+                    .font(.caption2.weight(.medium))
+                    .tracking(0.35)
+            }
+            .foregroundStyle(Brand.secondary.opacity(0.9))
+            .padding(.bottom, 6)
+        }
+        .frame(maxWidth: .infinity)
+        .task {
+            withAnimation(.easeInOut(duration: 0.7).repeatCount(2, autoreverses: true)) {
+                nudged = true
             }
         }
     }
