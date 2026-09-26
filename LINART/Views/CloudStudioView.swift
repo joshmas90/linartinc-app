@@ -83,10 +83,20 @@ struct ProjectSendView: View {
                     } else if let address = cloud.email {
                         confirmationForm(address: address)
                     } else {
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("Verify your email").font(.headline)
+                        VStack(alignment: .leading, spacing: PremiumLayout.md) {
+                            Eyebrow(title: "Identity check")
+                            Text("Verify your email")
+                                .font(.system(.title3, design: .serif))
+                                .foregroundStyle(Brand.ink)
+                            Text("We use a secure sign-in link so your project brief is attached to the right person. No password is required.")
+                                .font(.subheadline)
+                                .foregroundStyle(Brand.secondary)
+                                .lineSpacing(3)
                             ProjectEmailSignInView(email: $email)
-                        }.padding(22).background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
+                        }
+                        .padding(22)
+                        .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Brand.line))
                     }
                     if cloud.busy {
                         ProgressView("Please wait…").accessibilityIdentifier("projectSendProgress")
@@ -100,9 +110,12 @@ struct ProjectSendView: View {
                     NavigationLink("Privacy & your information") { PrivacyView() }.frame(minHeight: 44)
                 }
             }.padding(24).frame(maxWidth: 760).frame(maxWidth: .infinity)
-        }.background(Brand.cream).scrollDismissesKeyboard(.interactively)
-            .navigationTitle(confirmation == nil ? "Verify & send" : "Brief received")
-            .navigationBarTitleDisplayMode(.inline)
+        }
+        .background(Brand.cream)
+        .scrollDismissesKeyboard(.interactively)
+        .navigationTitle(confirmation == nil ? "Verify & send" : "Brief received")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
             .navigationBarBackButtonHidden(cloud.busy)
             .disabled(cloud.busy)
             .onAppear {
@@ -137,9 +150,10 @@ struct ProjectSendView: View {
                     .tint(Brand.bronze).accessibilityIdentifier("projectSendConsent")
                 Button(action: send) {
                     Label("Send my brief", systemImage: "paperplane")
-                }.buttonStyle(PrimaryButtonStyle())
-                    .disabled(!canSend).opacity(canSend ? 1 : 0.5)
-                    .accessibilityIdentifier("projectSendConfirm")
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(!canSend)
+                .accessibilityIdentifier("projectSendConfirm")
                 Text("You can return to review to make changes before sending.").font(.footnote).foregroundStyle(Brand.secondary)
             }
         }.padding(22).background(Brand.paper, in: RoundedRectangle(cornerRadius: 16))
