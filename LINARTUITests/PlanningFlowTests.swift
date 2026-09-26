@@ -64,6 +64,8 @@ final class PlanningFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["openStudio"].waitForExistence(timeout: 5))
         app.terminate()
         app.launch()
+        let relaunchedWelcome = app.buttons["Continue to LINART"]
+        if relaunchedWelcome.waitForExistence(timeout: 5), relaunchedWelcome.isHittable { relaunchedWelcome.tap() }
         tab("My Project", app)
         tapWhenVisible(app.buttons["openStudio"], in: app)
         XCTAssertTrue(app.buttons["studioSend"].waitForExistence(timeout: 5), "The draft should reopen at the review step")
