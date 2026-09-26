@@ -375,6 +375,7 @@ struct ProjectStudioView: View {
     @State private var editingFromReview = false
     @State private var keyboardVisible = false
     @State private var closing = false
+    @State private var detailsScrollCueDismissed = false
 
     var body: some View {
         Group {
@@ -384,7 +385,10 @@ struct ProjectStudioView: View {
                     navigate(to: section)
                 }, onSaveAndClose: saveAndClose)
             } else {
-                StudioEditorView(section: studio.currentSection)
+                StudioEditorView(
+                    section: studio.currentSection,
+                    detailsScrollCueDismissed: $detailsScrollCueDismissed
+                )
             }
         }
         .id(studio.currentSection)
