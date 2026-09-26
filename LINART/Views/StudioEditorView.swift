@@ -171,46 +171,84 @@ struct StudioEditorView: View {
         Group {
             Section {
                 if studio.draft.references.isEmpty {
-                    StudioEmptyState(
-                        symbol: "link",
-                        title: "No web inspiration saved yet",
-                        message: "Add a room, finish or product link only when it helps explain what you like."
+                    Text("Save a room, finish or product link only when it helps explain the direction you have in mind.")
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.secondary)
+                        .lineSpacing(3)
+                }
+
+                ForEach(studio.draft.references) { reference in
+                    VStack(alignment: .leading, spacing: PremiumLayout.xs) {
+                        Text(reference.url)
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(Brand.ink)
+                            .textSelection(.enabled)
+                        if !reference.note.isEmpty {
+                            Text(reference.note)
+                                .font(.subheadline)
+                                .foregroundStyle(Brand.secondary)
+                                .lineSpacing(3)
+                        }
+                        Button("Remove link", role: .destructive) {
+                            studio.draft.references.removeAll { $0.id == reference.id }
+                        }
+                        .buttonStyle(.borderless)
+                        .frame(minHeight: 44)
+                    }
+                    .padding(.vertical, 4)
+                }
+
+                Button { showLinkEditor = true } label: {
+                    StudioPlannerActionRow(
+                        title: "Add a web link",
+                        subtitle: studio.draft.references.isEmpty ? "Room, finish or product inspiration" : "Add another reference",
+                        symbol: "link.badge.plus"
                     )
                 }
-                ForEach(studio.draft.references) { reference in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(reference.url).font(.footnote).textSelection(.enabled)
-                        if !reference.note.isEmpty { Text(reference.note) }
-                        Button("Remove link", role: .destructive) { studio.draft.references.removeAll { $0.id == reference.id } }
-                            .buttonStyle(.borderless).frame(minHeight: 44)
-                    }
+                .buttonStyle(.plain)
+                .disabled(studio.draft.references.count >= 10)
+                .accessibilityIdentifier("studioAddLink")
+            } header: {
+                Text("Web inspiration · optional")
+            } footer: {
+                if !studio.draft.references.isEmpty {
+                    Text("\(studio.draft.references.count) of 10 links saved.")
                 }
-                Button("Add a web link", systemImage: "link.badge.plus") { showLinkEditor = true }
-                    .disabled(studio.draft.references.count >= 10).frame(minHeight: 44)
-                    .accessibilityIdentifier("studioAddLink")
-            } header: { Text("Web inspiration · optional") } footer: {
-                Text("\(studio.draft.references.count) of 10 links added.")
             }
 
-            Section("Ideas from LINART projects · optional") {
+            Section {
                 if studio.draft.ideas.isEmpty {
-                    StudioEmptyState(
-                        symbol: "square.grid.2x2",
-                        title: "No LINART inspiration selected yet",
-                        message: "Browse completed projects and save only the details that speak to your project."
-                    )
+                    Text("Browse completed LINART work and save only the projects or details that genuinely speak to your own.")
+                        .font(.subheadline)
+                        .foregroundStyle(Brand.secondary)
+                        .lineSpacing(3)
                 }
+
                 ForEach($studio.draft.ideas) { $idea in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(idea.title).font(.headline)
+                    VStack(alignment: .leading, spacing: PremiumLayout.xs) {
+                        Text(idea.title).font(.headline).foregroundStyle(Brand.ink)
                         StudioField(title: "The details you love", text: $idea.note,
                                     placeholder: "For example, the cabinetry or the open layout.")
-                        Button("Remove from brief", role: .destructive) { studio.draft.ideas.removeAll { $0.id == idea.id } }
-                            .buttonStyle(.borderless).frame(minHeight: 44)
+                        Button("Remove from brief", role: .destructive) {
+                            studio.draft.ideas.removeAll { $0.id == idea.id }
+                        }
+                        .buttonStyle(.borderless)
+                        .frame(minHeight: 44)
                     }
+                    .padding(.vertical, 4)
                 }
-                Button("Choose from LINART projects", systemImage: "square.grid.2x2") { showIdeas = true }
-                    .frame(minHeight: 44).accessibilityIdentifier("studioChooseIdeas")
+
+                Button { showIdeas = true } label: {
+                    StudioPlannerActionRow(
+                        title: "Choose from LINART projects",
+                        subtitle: studio.draft.ideas.isEmpty ? "Explore completed work without leaving your plan" : "Add another project idea",
+                        symbol: "square.grid.2x2"
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("studioChooseIdeas")
+            } header: {
+                Text("Ideas from LINART projects · optional")
             }
         }
     }
@@ -310,6 +348,39 @@ struct StudioPlanningHorizon: View {
             }
         }
         .padding(.vertical, PremiumLayout.xs)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+struct StudioPlannerActionRow: View {
+    let title: String
+    let subtitle: String
+    let symbol: String
+
+    var body: some View {
+        HStack(spacing: PremiumLayout.sm) {
+            Image(systemName: symbol)
+                .font(.body.weight(.medium))
+                .foregroundStyle(Brand.bronze)
+                .frame(width: 28)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.ink)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(Brand.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: PremiumLayout.sm)
+            Image(systemName: "arrow.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Brand.bronze)
+                .accessibilityHidden(true)
+        }
+        .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 }
