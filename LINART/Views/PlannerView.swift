@@ -391,6 +391,7 @@ struct ProjectStudioView: View {
         .animation(.easeInOut(duration: 0.22), value: studio.currentSection)
             .background(Brand.cream)
             .navigationTitle("My Project").navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .tabBar)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if !keyboardVisible { navigationFooter }
             }
@@ -447,19 +448,31 @@ struct ProjectStudioView: View {
     }
 
     private var navigationFooter: some View {
-        VStack(spacing: 10) {
-            if studio.hasUnsavedChanges && !studio.isSaving {
-                Button("Changes not saved · try Save now") { Task { await studio.flush() } }
-                    .font(.caption).frame(minHeight: 44)
-            } else {
-                Text(studio.isImporting ? "Adding your photos…" : studio.saveLabel)
-                    .font(.caption).foregroundStyle(Brand.secondary)
+        VStack(spacing: 7) {
+            HStack(spacing: 6) {
+                if studio.hasUnsavedChanges && !studio.isSaving {
+                    Button("Changes not saved · Save now") { Task { await studio.flush() } }
+                        .font(.caption)
+                        .foregroundStyle(Brand.bronze)
+                        .frame(minHeight: 30)
+                } else {
+                    Image(systemName: studio.isImporting ? "photo.badge.plus" : studio.isSaving ? "arrow.clockwise" : "lock")
+                        .font(.caption2)
+                        .foregroundStyle(Brand.bronze)
+                        .accessibilityHidden(true)
+                    Text(studio.isImporting ? "Adding selected photos…" : studio.isSaving ? "Saving privately…" : "Saved privately on this device")
+                        .font(.caption)
+                        .foregroundStyle(Brand.secondary)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .center)
+
             if typeSize.isAccessibilitySize {
                 VStack(spacing: 8) { forwardButton; backButton }
             } else {
-                HStack(spacing: 12) { backButton; forwardButton }
+                HStack(spacing: 10) { backButton; forwardButton }
             }
+
             if studio.currentSection != .review && !editingFromReview && !studio.currentSection.hasContent(in: studio.draft) {
                 Button("Skip for now") { advance() }
                     .buttonStyle(TertiaryButtonStyle())
@@ -467,9 +480,9 @@ struct ProjectStudioView: View {
                     .disabled(!studio.isReady || closing)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 10)
-        .padding(.bottom, 12)
+        .padding(.horizontal, 20)
+        .padding(.top, 7)
+        .padding(.bottom, 8)
         .frame(maxWidth: 760)
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
