@@ -4,7 +4,7 @@ final class PlanningFlowTests: XCTestCase {
     func testPlanningNavigationAndAccessibleInquiry() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launchArguments = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL", "-LINARTDisableWelcomeAutoDismiss"]
         app.launch()
         let skip = app.buttons["Continue to LINART"]
         if skip.waitForExistence(timeout: 5), skip.isHittable { skip.tap() }
@@ -20,7 +20,7 @@ final class PlanningFlowTests: XCTestCase {
         tapWhenVisible(goals, in: app); goals.typeText("More daylight and a calmer kitchen.")
         app.toolbars.buttons["Done"].tap()
         tapWhenVisible(app.buttons["studioContinue"], in: app)
-        XCTAssertTrue(app.buttons["studioAddPhotos"].waitForExistence(timeout: 5))
+        XCTAssertTrue(identified("studioAddPhotos", in: app).waitForExistence(timeout: 5))
         tapWhenVisible(app.buttons["studioSkip"], in: app)
         tapWhenVisible(app.buttons["studioAddLink"], in: app)
         let address = app.textFields["Full web address"]
@@ -47,7 +47,7 @@ final class PlanningFlowTests: XCTestCase {
         XCTAssertFalse(identified("studioEdit-photos", in: app).exists, "Unanswered sections stay collapsed")
         tapWhenVisible(identified("studioOptionalDetails", in: app), in: app)
         tapWhenVisible(identified("studioEdit-photos", in: app), in: app)
-        XCTAssertTrue(app.buttons["studioAddPhotos"].waitForExistence(timeout: 5))
+        XCTAssertTrue(identified("studioAddPhotos", in: app).waitForExistence(timeout: 5))
         app.buttons["studioContinue"].tap()
         tapWhenVisible(app.buttons["studioSend"], in: app)
         XCTAssertTrue(app.textFields["projectSignInEmail"].waitForExistence(timeout: 5))
@@ -103,7 +103,7 @@ final class PlanningFlowTests: XCTestCase {
     func testLargeTextPlanning() {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL", "-LINARTDisableWelcomeAutoDismiss"]
         app.launch()
         let skip = app.buttons["Continue to LINART"]
         if skip.waitForExistence(timeout: 5), skip.isHittable { skip.tap() }
@@ -119,6 +119,7 @@ final class PlanningFlowTests: XCTestCase {
     func testSkipEmptyPlanAndResume() {
         continueAfterFailure = false
         let app = XCUIApplication()
+        app.launchArguments.append("-LINARTDisableWelcomeAutoDismiss")
         app.launch()
         let welcome = app.buttons["Continue to LINART"]
         if welcome.waitForExistence(timeout: 5), welcome.isHittable { welcome.tap() }
@@ -146,6 +147,7 @@ final class PlanningFlowTests: XCTestCase {
     func testProjectGuidanceAndDeliberateInspirationSelection() {
         continueAfterFailure = false
         let app = XCUIApplication()
+        app.launchArguments.append("-LINARTDisableWelcomeAutoDismiss")
         app.launch()
         let welcome = app.buttons["Continue to LINART"]
         if welcome.waitForExistence(timeout: 5), welcome.isHittable { welcome.tap() }
