@@ -115,10 +115,15 @@ struct StudioEditorView: View {
                     ForEach(purposes, id: \.self) { Text($0).tag($0) }
                 }.disabled(studio.isImporting)
                 PhotosPicker(selection: $selections, maxSelectionCount: max(1, 8 - studio.draft.photos.count), matching: .images) {
-                    Label(importing ? "Adding photos…" : "Choose photos", systemImage: "photo.badge.plus")
-                        .frame(minHeight: 44)
-                }.disabled(studio.isImporting || studio.draft.photos.count >= 8)
-                    .accessibilityIdentifier("studioAddPhotos")
+                    StudioPlannerActionRow(
+                        title: importing ? "Adding selected photos…" : "Choose photos",
+                        subtitle: studio.draft.photos.isEmpty ? "Select only the images you want included" : "\(8 - studio.draft.photos.count) spaces remaining",
+                        symbol: "photo.badge.plus"
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(studio.isImporting || studio.draft.photos.count >= 8)
+                .accessibilityIdentifier("studioAddPhotos")
                 if !studio.draft.photos.isEmpty {
                     Text("\(studio.draft.photos.count) of 8 photos added · only the photos you choose are copied into your plan.")
                         .font(.caption)
@@ -335,7 +340,7 @@ struct StudioPlanningHorizon: View {
         HStack(alignment: .top, spacing: PremiumLayout.sm) {
             Rectangle()
                 .fill(Brand.brass)
-                .frame(width: 2)
+                .frame(width: 2, height: 56)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 5) {
                 Text("A starting point is enough.")
