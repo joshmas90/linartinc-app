@@ -50,6 +50,7 @@ struct PlannerView: View {
         .background(Brand.cream)
         .navigationTitle("My Project")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .tabBar)
         .navigationDestination(isPresented: $store.studioRequested) { ProjectStudioView() }
     }
 
