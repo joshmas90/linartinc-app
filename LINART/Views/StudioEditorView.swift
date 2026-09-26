@@ -123,6 +123,10 @@ struct StudioEditorView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(studio.isImporting || studio.draft.photos.count >= 8)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(importing ? "Adding selected photos" : "Choose photos")
+                .accessibilityHint("Opens the system photo picker. Only selected images are copied into your project.")
+                .accessibilityAddTraits(.isButton)
                 .accessibilityIdentifier("studioAddPhotos")
                 if !studio.draft.photos.isEmpty {
                     Text("\(studio.draft.photos.count) of 8 photos added · only the photos you choose are copied into your plan.")
