@@ -68,6 +68,8 @@ final class PlanningFlowTests: XCTestCase {
         tapWhenVisible(app.buttons["openStudio"], in: app)
         XCTAssertTrue(app.buttons["studioSend"].waitForExistence(timeout: 5), "The draft should reopen at the review step")
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "More daylight and a calmer kitchen.")).firstMatch.exists)
+        XCTAssertFalse(app.tabBars.buttons["More"].isHittable, "The planner should be a focused flow without competing tab navigation")
+        tapWhenVisible(app.buttons["studioSaveForLater"], in: app)
         tab("More", app)
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Contact Us,")).firstMatch.tap()
         app.buttons["Start a Project Inquiry"].tap()
