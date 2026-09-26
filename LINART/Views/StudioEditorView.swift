@@ -10,6 +10,7 @@ struct StudioEditorView: View {
     @State private var moreDetails = false
     @State private var showLinkEditor = false
     @State private var showIdeas = false
+    @State private var showProjectTypePicker = false
     private let purposes = ["My space", "Inspiration", "Plans & drawings"]
 
     var body: some View {
@@ -23,11 +24,16 @@ struct StudioEditorView: View {
                 if section == .photos { photos }
                 if section == .links { references }
                 if section == .timing {
-                    Section("Looking ahead · optional") {
+                    Section {
+                        StudioPlanningHorizon()
                         StudioField(title: "Investment range or budget considerations", text: $studio.draft.investment,
                                     placeholder: "A range is helpful, or say you are still exploring.")
                         StudioField(title: "Ideal project timing", text: $studio.draft.timeline,
                                     placeholder: "For example, this fall or flexible.")
+                    } header: {
+                        Text("Planning horizon · optional")
+                    } footer: {
+                        Text("A rough range or season is enough. These answers are for the first conversation, not a commitment.")
                     }
                 }
             }.disabled(!studio.isReady)
@@ -38,6 +44,9 @@ struct StudioEditorView: View {
             }
             .sheet(isPresented: $showLinkEditor) { StudioLinkEditor() }
             .sheet(isPresented: $showIdeas) { StudioIdeasPicker() }
+            .sheet(isPresented: $showProjectTypePicker) {
+                StudioProjectTypePicker(selection: $studio.draft.projectType)
+            }
             .onAppear {
                 let draft = studio.draft
                 moreDetails = [draft.style, draft.priorities, draft.constraints, draft.other, draft.inquiryEmail]
@@ -48,10 +57,32 @@ struct StudioEditorView: View {
     private var details: some View {
         Group {
             Section("Start with the basics · optional") {
-                Picker("Project type", selection: $studio.draft.projectType) {
-                    Text("Not decided yet").tag("")
-                    ForEach(Inquiry.serviceOptions, id: \.self) { Text($0).tag($0) }
-                }.accessibilityIdentifier("studioProjectType")
+                Button { showProjectTypePicker = true } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("PROJECT TYPE")
+                            .font(.caption2.weight(.semibold))
+                            .tracking(0.8)
+                            .foregroundStyle(Brand.secondary)
+                        HStack(alignment: .firstTextBaseline, spacing: PremiumLayout.sm) {
+                            Text(studio.draft.projectType.isEmpty ? "Not decided yet" : studio.draft.projectType)
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(studio.draft.projectType.isEmpty ? Brand.secondary : Brand.ink)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: PremiumLayout.sm)
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Brand.bronze)
+                                .accessibilityHidden(true)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("studioProjectType")
+                .accessibilityLabel("Project type")
+                .accessibilityValue(studio.draft.projectType.isEmpty ? "Not decided yet" : studio.draft.projectType)
                 StudioField(title: "What would you like to create?", text: $studio.draft.goals,
                             placeholder: studio.draft.guidance.goal)
                 StudioField(title: "What does the space look like today?", text: $studio.draft.existingConditions,
@@ -88,15 +119,18 @@ struct StudioEditorView: View {
                         .frame(minHeight: 44)
                 }.disabled(studio.isImporting || studio.draft.photos.count >= 8)
                     .accessibilityIdentifier("studioAddPhotos")
-                Text("\(studio.draft.photos.count) of 8 photos added. Only the photos you choose are copied into your plan.")
-                    .font(.caption).foregroundStyle(Brand.secondary)
-                if studio.isImporting { ProgressView("Adding your selected photos…") }
-                if studio.draft.photos.isEmpty && !studio.isImporting {
-                    StudioEmptyState(
-                        symbol: "photo.on.rectangle.angled",
-                        title: "No photos yet",
-                        message: "A wide view is a useful start, but you can continue without photos and return whenever you're ready."
-                    )
+                if !studio.draft.photos.isEmpty {
+                    Text("\(studio.draft.photos.count) of 8 photos added · only the photos you choose are copied into your plan.")
+                        .font(.caption)
+                        .foregroundStyle(Brand.secondary)
+                }
+                if studio.isImporting {
+                    ProgressView("Adding your selected photos…")
+                } else if studio.draft.photos.isEmpty {
+                    Text("A wide view is a useful start, but you can continue without photos and return whenever you're ready.")
+                        .font(.footnote)
+                        .foregroundStyle(Brand.secondary)
+                        .lineSpacing(3)
                 }
             } header: { Text("Add photos · optional") }
 
@@ -179,6 +213,104 @@ struct StudioEditorView: View {
                     .frame(minHeight: 44).accessibilityIdentifier("studioChooseIdeas")
             }
         }
+    }
+}
+
+struct StudioProjectTypePicker: View {
+    @Binding var selection: String
+    @Environment(\.dismiss) private var dismiss
+
+    private var options: [String] { [""] + Inquiry.serviceOptions }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: PremiumLayout.md) {
+                    VStack(alignment: .leading, spacing: PremiumLayout.xs) {
+                        Eyebrow(title: "Project direction")
+                        Text("Choose your project type")
+                            .font(.system(.title2, design: .serif))
+                            .foregroundStyle(Brand.ink)
+                        Text("Choose the closest fit for now. You can change it later without losing any notes, photos or inspiration.")
+                            .font(.subheadline)
+                            .foregroundStyle(Brand.secondary)
+                            .lineSpacing(3)
+                    }
+
+                    VStack(spacing: 0) {
+                        ForEach(options, id: \.self) { option in
+                            Button {
+                                selection = option
+                                dismiss()
+                            } label: {
+                                HStack(spacing: PremiumLayout.sm) {
+                                    Text(option.isEmpty ? "Not decided yet" : option)
+                                        .font(.body.weight(selection == option ? .semibold : .regular))
+                                        .foregroundStyle(Brand.ink)
+                                        .multilineTextAlignment(.leading)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                    Spacer(minLength: PremiumLayout.sm)
+                                    if selection == option {
+                                        Image(systemName: "checkmark")
+                                            .font(.subheadline.weight(.bold))
+                                            .foregroundStyle(Brand.bronze)
+                                            .accessibilityHidden(true)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
+                                .padding(.horizontal, 16)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(option.isEmpty ? "Not decided yet" : option)
+                            .accessibilityAddTraits(selection == option ? [.isSelected] : [])
+
+                            if option != options.last {
+                                Divider().overlay(Brand.line).padding(.leading, 16)
+                            }
+                        }
+                    }
+                    .background(Brand.paper, in: RoundedRectangle(cornerRadius: 14))
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Brand.line))
+                }
+                .padding(24)
+                .frame(maxWidth: 620)
+                .frame(maxWidth: .infinity)
+            }
+            .background(Brand.cream)
+            .navigationTitle("Project type")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .tint(Brand.bronze)
+    }
+}
+
+struct StudioPlanningHorizon: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: PremiumLayout.sm) {
+            Rectangle()
+                .fill(Brand.brass)
+                .frame(width: 2)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 5) {
+                Text("A starting point is enough.")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Brand.ink)
+                Text("Share what feels comfortable today. Budget and timing can stay flexible until the project is better defined.")
+                    .font(.subheadline)
+                    .foregroundStyle(Brand.secondary)
+                    .lineSpacing(3)
+            }
+        }
+        .padding(.vertical, PremiumLayout.xs)
+        .accessibilityElement(children: .combine)
     }
 }
 
