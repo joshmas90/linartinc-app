@@ -54,7 +54,9 @@ private struct BrandIntroductionView: View {
     }
 
     private var shouldAutoDismiss: Bool {
-        scenePhase == .active && !requiresManualDismissal
+        scenePhase == .active &&
+        !requiresManualDismissal &&
+        !ProcessInfo.processInfo.arguments.contains("-LINARTDisableWelcomeAutoDismiss")
     }
 
     private var motionEnabled: Bool {
